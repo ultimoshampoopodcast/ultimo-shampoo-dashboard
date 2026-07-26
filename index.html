@@ -236,17 +236,38 @@
   <section class="page" id="page-kpi-canale">
     <div class="section-label"><span class="tag">YT</span><h2>KPI del canale YouTube</h2><div class="line"></div></div>
     <div id="alertYoutube" class="alert-box warn hidden"></div>
-    <p class="subtitle">Dati live dal canale <a href="https://www.youtube.com/@UltimoShampooPodcast" target="_blank" style="color:var(--purple)">@UltimoShampooPodcast</a>.</p>
+    <p class="subtitle">Dati live dal canale <a href="https://www.youtube.com/@UltimoShampooPodcast" target="_blank" style="color:var(--purple)">@UltimoShampooPodcast</a>. Gli Shorts sono classificati per durata (≤3 min) su tutti i video del canale, non solo quelli in Palinsesto.</p>
+
+    <div class="section-label"><span class="tag">01</span><h2>Generali</h2><div class="line"></div></div>
     <div class="kpi-grid">
       <div class="kpi-card" style="--kpi-color:#EFA75E"><div class="kpi-top"><span class="kpi-name">Iscritti</span></div><div class="kpi-value" id="ytSubs">—</div></div>
       <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Views totali canale</span></div><div class="kpi-value" id="ytViews">—</div></div>
-      <div class="kpi-card" style="--kpi-color:#B48EDE"><div class="kpi-top"><span class="kpi-name">Video pubblicati</span></div><div class="kpi-value" id="ytVideos">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#B48EDE"><div class="kpi-top"><span class="kpi-name">Video totali (podcast+short)</span></div><div class="kpi-value" id="ytVideos">—</div></div>
       <div class="kpi-card" style="--kpi-color:#F0A0C4"><div class="kpi-top"><span class="kpi-name">Views medie/episodio</span></div><div class="kpi-value" id="ytAvg">—</div></div>
     </div>
-    <div class="section-label"><span class="tag">TOP</span><h2>Episodi per views</h2><div class="line"></div></div>
+
+    <div class="section-label"><span class="tag">🎙️</span><h2>Video podcast ufficiali</h2><div class="line"></div></div>
+    <div class="kpi-grid">
+      <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Episodi pubblicati</span></div><div class="kpi-value" id="podEpisodi">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Views totali</span></div><div class="kpi-value" id="podViews">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Views medie</span></div><div class="kpi-value" id="podAvg">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Like medi</span></div><div class="kpi-value" id="podAvgLike">—</div></div>
+    </div>
     <div class="table-wrap"><div class="table-scroll">
       <table><thead><tr><th>#</th><th>Titolo</th><th>Views</th><th>Like</th><th>Commenti</th></tr></thead>
       <tbody id="topVideosBody"><tr><td colspan="5" class="empty-state">Caricamento...</td></tr></tbody></table>
+    </div></div>
+
+    <div class="section-label"><span class="tag">📱</span><h2>Shorts</h2><div class="line"></div></div>
+    <div class="kpi-grid">
+      <div class="kpi-card" style="--kpi-color:#F0A0C4"><div class="kpi-top"><span class="kpi-name">Shorts pubblicati</span></div><div class="kpi-value" id="shortCount">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#F0A0C4"><div class="kpi-top"><span class="kpi-name">Views totali</span></div><div class="kpi-value" id="shortViews">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#F0A0C4"><div class="kpi-top"><span class="kpi-name">Views medie</span></div><div class="kpi-value" id="shortAvg">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#F0A0C4"><div class="kpi-top"><span class="kpi-name">Like medi</span></div><div class="kpi-value" id="shortAvgLike">—</div></div>
+    </div>
+    <div class="table-wrap"><div class="table-scroll">
+      <table><thead><tr><th>#</th><th>Titolo</th><th>Views</th><th>Like</th><th>Commenti</th></tr></thead>
+      <tbody id="shortsVideosBody"><tr><td colspan="5" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
   </section>
 
@@ -349,13 +370,16 @@
         <div class="form-field"><label>Stato iniziale</label>
           <select id="osStato"><option>Da chiamare</option><option>Chiamato</option><option>Confermato</option></select>
         </div>
+        <div class="form-field"><label>Puntata collegata (opz.)</label>
+          <select id="osPuntata"><option value="">— nessuna —</option></select>
+        </div>
       </div>
       <button class="btn" onclick="addGuest()">Salva ospite</button>
     </div>
 
     <div class="table-wrap"><div class="table-scroll">
-      <table><thead><tr><th>Nome</th><th>Contatti</th><th>Temi</th><th>Stato</th><th>Azione</th></tr></thead>
-      <tbody id="ospitiBody"><tr><td colspan="5" class="empty-state">Caricamento...</td></tr></tbody></table>
+      <table><thead><tr><th>Nome</th><th>Contatti</th><th>Temi</th><th>Puntata</th><th>Stato</th><th>Azione</th></tr></thead>
+      <tbody id="ospitiBody"><tr><td colspan="6" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
   </section>
 
@@ -368,7 +392,7 @@
 <script>
 const CONFIG = {
   SHEET_ID: "1-PDe062FZUGOtaBBBcYRWkvFNT7Ya3YC55ZjggUcw5s",
-  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxQ6o9yRF9PkhNWfI3PfONMD6C6Px-EB3wfgTINA1rrRVce_jCJgXz6h1-bHUhihsss/exec",
+  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbylXiE_CrgfiN_A4Swvs7CzeJe3GVOTTV6sq_sKHBnkjiRyN6SfbWrsc0qulnrkDkwR/exec",
   GOOGLE_API_KEY: "AIzaSyDoh9uOPdpdrvOi1jlLYQ51FcSUnCocUTw",
   YOUTUBE_HANDLE: "UltimoShampooPodcast",
   ON_AIR_KEYWORD: "registrazione",
@@ -527,6 +551,51 @@ async function fetchVideoStats(ids){
   }
   return all;
 }
+
+const SHORTS_MAX_SECONDS = 183; // ~3 minuti: soglia attuale di YouTube per gli Shorts
+function parseISODuration(iso){
+  const m = (iso||"").match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if(!m) return 0;
+  return (parseInt(m[1]||0)*3600) + (parseInt(m[2]||0)*60) + parseInt(m[3]||0);
+}
+async function fetchUploadsPlaylistId(){
+  const url = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails,statistics,snippet&forHandle=${CONFIG.YOUTUBE_HANDLE}&key=${CONFIG.GOOGLE_API_KEY}`;
+  const res = await fetch(url); const data = await res.json();
+  if(data.error) throw new Error(data.error.message);
+  const ch = data.items && data.items[0];
+  if(!ch) throw new Error("Canale non trovato per handle @"+CONFIG.YOUTUBE_HANDLE);
+  return ch;
+}
+async function fetchAllUploadIds(uploadsPlaylistId, maxVideos){
+  let ids = []; let pageToken = "";
+  while(ids.length < maxVideos){
+    const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${uploadsPlaylistId}&maxResults=50&key=${CONFIG.GOOGLE_API_KEY}${pageToken?`&pageToken=${pageToken}`:""}`;
+    const res = await fetch(url); const data = await res.json();
+    if(data.error) throw new Error(data.error.message);
+    (data.items||[]).forEach(it=>ids.push(it.contentDetails.videoId));
+    if(!data.nextPageToken) break;
+    pageToken = data.nextPageToken;
+  }
+  return ids.slice(0, maxVideos);
+}
+async function fetchVideosFull(ids){
+  let all = [];
+  for(let i=0;i<ids.length;i+=50){
+    const chunk = ids.slice(i,i+50);
+    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics,contentDetails&id=${chunk.join(",")}&key=${CONFIG.GOOGLE_API_KEY}`;
+    const res = await fetch(url); const data = await res.json();
+    if(data.error) throw new Error(data.error.message);
+    all = all.concat(data.items||[]);
+  }
+  return all;
+}
+function renderVideoTable(elId, rows){
+  document.getElementById(elId).innerHTML = rows.length ? rows.map((r,i)=>`
+    <tr><td>${i+1}</td><td>${r.titolo}</td><td>${fmtNum(r.views)}</td><td>${fmtNum(r.like)}</td><td>${fmtNum(r.comm)}</td></tr>
+  `).join("") : `<tr><td colspan="5" class="empty-state">Nessun video trovato</td></tr>`;
+}
+function avg(arr){ return arr.length ? Math.round(arr.reduce((a,b)=>a+b,0)/arr.length) : 0; }
+
 async function loadChannelKpi(){
   hideAlert("alertYoutube"); setWarnDot("warnYoutube", false);
   if(!HAS_GOOGLE_KEY){
@@ -534,30 +603,53 @@ async function loadChannelKpi(){
     setWarnDot("warnYoutube", true); return;
   }
   try{
-    const url = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&forHandle=${CONFIG.YOUTUBE_HANDLE}&key=${CONFIG.GOOGLE_API_KEY}`;
-    const res = await fetch(url); const data = await res.json();
-    if(data.error) throw new Error(data.error.message);
-    const ch = data.items && data.items[0];
-    if(!ch) throw new Error("Canale non trovato per handle @"+CONFIG.YOUTUBE_HANDLE);
+    const ch = await fetchUploadsPlaylistId();
     const stat = ch.statistics;
     document.getElementById("ytSubs").textContent = fmtNum(stat.subscriberCount);
     document.getElementById("ytViews").textContent = fmtNum(stat.viewCount);
     document.getElementById("ytVideos").textContent = fmtNum(stat.videoCount);
     document.getElementById("kpiIscritti").textContent = fmtNum(stat.subscriberCount);
-    const avg = stat.videoCount>0 ? Math.round(stat.viewCount/stat.videoCount) : null;
-    document.getElementById("ytAvg").textContent = avg ? fmtNum(avg) : "—";
+    const avgGlobal = stat.videoCount>0 ? Math.round(stat.viewCount/stat.videoCount) : null;
+    document.getElementById("ytAvg").textContent = avgGlobal ? fmtNum(avgGlobal) : "—";
 
-    let videoIds = palinsestoData.map(r=>extractYoutubeId(r["Link"]||r["Link intervista"])).filter(Boolean);
-    const stats = await fetchVideoStats(videoIds);
-    renderEpisodiTable(stats);
-    const rows = palinsestoData.map(r=>{
+    // --- Video podcast ufficiali: quelli linkati in Palinsesto ---
+    let podcastIds = palinsestoData.map(r=>extractYoutubeId(r["Link"]||r["Link intervista"])).filter(Boolean);
+    const podStats = await fetchVideoStats(podcastIds);
+    renderEpisodiTable(podStats);
+    const podRows = palinsestoData.map(r=>{
       const id = extractYoutubeId(r["Link"]||r["Link intervista"]);
-      const s = id ? stats[id] : null;
-      return {titolo: r["Titolo"]||"—", views: s?parseInt(s.viewCount):-1, like: s?s.likeCount:0, comm: s?s.commentCount:0};
-    }).filter(r=>r.views>=0).sort((a,b)=>b.views-a.views).slice(0,10);
-    document.getElementById("topVideosBody").innerHTML = rows.length ? rows.map((r,i)=>`
-      <tr><td>${i+1}</td><td>${r.titolo}</td><td>${fmtNum(r.views)}</td><td>${fmtNum(r.like)}</td><td>${fmtNum(r.comm)}</td></tr>
-    `).join("") : `<tr><td colspan="5" class="empty-state">Nessun video con link valido</td></tr>`;
+      const s = id ? podStats[id] : null;
+      return {titolo: r["Titolo"]||"—", views: s?parseInt(s.viewCount):-1, like: s?parseInt(s.likeCount||0):0, comm: s?parseInt(s.commentCount||0):0};
+    }).filter(r=>r.views>=0).sort((a,b)=>b.views-a.views);
+    document.getElementById("podEpisodi").textContent = fmtNum(podRows.length);
+    document.getElementById("podViews").textContent = fmtNum(podRows.reduce((a,r)=>a+r.views,0));
+    document.getElementById("podAvg").textContent = fmtNum(avg(podRows.map(r=>r.views)));
+    document.getElementById("podAvgLike").textContent = fmtNum(avg(podRows.map(r=>r.like)));
+    renderVideoTable("topVideosBody", podRows.slice(0,10));
+
+    // --- Shorts: scansione di tutti i video del canale, classificati per durata ---
+    const uploadsId = ch.contentDetails && ch.contentDetails.relatedPlaylists && ch.contentDetails.relatedPlaylists.uploads;
+    if(uploadsId){
+      const allIds = await fetchAllUploadIds(uploadsId, 200); // limite di sicurezza, vedi guida
+      const allVideos = await fetchVideosFull(allIds);
+      const shorts = allVideos
+        .map(v=>({
+          titolo: v.snippet.title,
+          views: parseInt(v.statistics.viewCount||0),
+          like: parseInt(v.statistics.likeCount||0),
+          comm: parseInt(v.statistics.commentCount||0),
+          durata: parseISODuration(v.contentDetails.duration)
+        }))
+        .filter(v=>v.durata>0 && v.durata<=SHORTS_MAX_SECONDS)
+        .sort((a,b)=>b.views-a.views);
+      document.getElementById("shortCount").textContent = fmtNum(shorts.length);
+      document.getElementById("shortViews").textContent = fmtNum(shorts.reduce((a,r)=>a+r.views,0));
+      document.getElementById("shortAvg").textContent = fmtNum(avg(shorts.map(r=>r.views)));
+      document.getElementById("shortAvgLike").textContent = fmtNum(avg(shorts.map(r=>r.like)));
+      renderVideoTable("shortsVideosBody", shorts.slice(0,10));
+    } else {
+      document.getElementById("shortsVideosBody").innerHTML = `<tr><td colspan="5" class="empty-state">Impossibile leggere la playlist caricamenti del canale</td></tr>`;
+    }
   }catch(e){
     console.error("Errore YouTube:", e);
     showAlert("alertYoutube","warn",`⚠️ Errore YouTube API: ${e.message}`);
@@ -842,43 +934,63 @@ async function loadOspiti(){
     console.error('Errore tab "'+CONFIG.TABS.ospiti+'":', e);
     showAlert("alertOspiti","error",`⚠️ Impossibile leggere la tab "${CONFIG.TABS.ospiti}": ${e.message}`);
     setWarnDot("warnOspiti", true);
-    document.getElementById("ospitiBody").innerHTML = `<tr><td colspan="5" class="empty-state">Dati non disponibili</td></tr>`;
+    document.getElementById("ospitiBody").innerHTML = `<tr><td colspan="6" class="empty-state">Dati non disponibili</td></tr>`;
     document.getElementById("kpiDaChiamare").textContent = "—";
     throw e;
   }
+  populateEpisodeSelect("osPuntata");
   const tbody = document.getElementById("ospitiBody");
-  if(!data.length){ tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Tab vuota</td></tr>`; document.getElementById("kpiDaChiamare").textContent="0"; return; }
+  if(!data.length){ tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Tab vuota</td></tr>`; document.getElementById("kpiDaChiamare").textContent="0"; return; }
   const daChiamare = data.filter(r=>{ const s=(r["Stato"]||"").toLowerCase(); return s.includes("chiamare")||s===""; }).length;
   document.getElementById("kpiDaChiamare").textContent = fmtNum(daChiamare);
+
+  const episodeOptionsHtml = (selected)=> `<option value="">— nessuna —</option>` +
+    palinsestoData.map(r=>`<option value="${r["Cod_puntata"]}" ${r["Cod_puntata"]===selected?"selected":""}>${r["Cod_puntata"]} — ${r["Titolo"]||"(senza titolo)"}</option>`).join("");
 
   tbody.innerHTML = data.map(r=>{
     const stato = r["Stato"] || "Da chiamare";
     const prossimo = stato.toLowerCase().includes("chiamare") ? "Chiamato" : "Da chiamare";
     const nomeEsc = (r["Nome"]||"").replace(/'/g,"\\'");
+    const cod = r["Cod_puntata"] || "";
     return `<tr>
       <td>${r["Nome"]||"—"}</td>
       <td>${r["Contatti"]||r["Email"]||r["Telefono"]||"—"}</td>
       <td>${r["Temi"]||r["Temi trattabili"]||"—"}</td>
+      <td><select class="note-input" ${HAS_APPS_SCRIPT?"":"disabled"} onchange="updateGuestField('${nomeEsc}','Cod_puntata', this.value)">${episodeOptionsHtml(cod)}</select></td>
       <td><span class="badge ${badgeClass(stato)}">${stato}</span></td>
       <td><button class="icon-btn" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="updateGuestStatus('${nomeEsc}','${prossimo}')">Segna: ${prossimo}</button></td>
     </tr>`;
   }).join("");
 }
+function populateEpisodeSelect(selectId){
+  const sel = document.getElementById(selectId);
+  if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = `<option value="">— nessuna —</option>` +
+    palinsestoData.map(r=>`<option value="${r["Cod_puntata"]}">${r["Cod_puntata"]} — ${r["Titolo"]||"(senza titolo)"}</option>`).join("");
+  sel.value = current || "";
+}
 async function updateGuestStatus(nome, nuovoStato){
   try{ await callAppsScript("updateGuestStatus", {nome, nuovoStato}); await loadOspiti(); }
   catch(e){ alert("Errore: "+e.message); }
+}
+async function updateGuestField(nome, campo, valore){
+  try{ await callAppsScript("updateGuestField", {nomeOriginale: nome, [campo]: valore}); }
+  catch(e){ alert("Errore salvataggio: "+e.message); await loadOspiti(); }
 }
 async function addGuest(){
   const data = {
     nome: document.getElementById("osNome").value.trim(),
     contatti: document.getElementById("osContatti").value.trim(),
     temi: document.getElementById("osTemi").value.trim(),
-    stato: document.getElementById("osStato").value
+    stato: document.getElementById("osStato").value,
+    codPuntata: document.getElementById("osPuntata").value
   };
   if(!data.nome){ alert("Il nome è obbligatorio"); return; }
   try{
     await callAppsScript("addGuest", data);
     ["osNome","osContatti","osTemi"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("osPuntata").value = "";
     document.getElementById("formOspite").style.display="none";
     await loadOspiti();
   }catch(e){ alert("Errore: "+e.message); }
