@@ -163,11 +163,11 @@
 
 <nav class="sidebar">
   <div class="sidebar-logo-wrap"><img id="logoImg" alt="Ultimo Shampoo Podcast"><div class="sidebar-title">Ultimo <span>Shampoo</span></div></div>
-  <div class="sidebar-sub"> - WORKSPACE PETTINATO - </div>
+  <div class="sidebar-sub">DASHBOARD DI PRODUZIONE</div>
   <div class="nav-item active" data-page="home"><span class="ic">🏠</span> Home</div>
   <div class="nav-item" data-page="episodi"><span class="ic">🎬</span> Episodi<span class="warn-dot" id="warnEpisodi" style="display:none"></span></div>
   <div class="nav-item" data-page="task"><span class="ic">✅</span> Task<span class="warn-dot" id="warnTask" style="display:none"></span></div>
-  <div class="nav-item" data-page="kpi-canale"><span class="ic">📈</span> KPI YouTube<span class="warn-dot" id="warnYoutube" style="display:none"></span></div>
+  <div class="nav-item" data-page="kpi-canale"><span class="ic">📈</span> KPI Canale<span class="warn-dot" id="warnYoutube" style="display:none"></span></div>
   <div class="nav-item" data-page="attrezzatura"><span class="ic">🎥</span> Attrezzatura<span class="warn-dot" id="warnAttrezzatura" style="display:none"></span></div>
   <div class="nav-item" data-page="calendario"><span class="ic">📅</span> Calendario<span class="warn-dot" id="warnCalendario" style="display:none"></span></div>
   <div class="nav-item" data-page="ospiti"><span class="ic">👤</span> Ospiti<span class="warn-dot" id="warnOspiti" style="display:none"></span></div>
@@ -424,14 +424,7 @@ async function callAppsScript(action, data){
   if(!json.ok) throw new Error(json.error || "Errore sconosciuto");
   return json.result;
 }
-async function callAppsScriptGet(params){
-  if(!HAS_APPS_SCRIPT) throw new Error("Apps Script non configurato");
-  const url = CONFIG.APPS_SCRIPT_URL + "?" + new URLSearchParams(params).toString();
-  const res = await fetch(url);
-  const json = await res.json();
-  if(!json.ok) throw new Error(json.error || "Errore sconosciuto");
-  return json;
-}
+
 
 let palinsestoData = [];
 function getEpisodeEventInfo(codPuntata){
@@ -720,8 +713,8 @@ async function loadCalendario(){
     const now = new Date();
     const timeMin = new Date(now); timeMin.setDate(timeMin.getDate()-7);
     const timeMax = new Date(now); timeMax.setDate(timeMax.getDate()+45);
-    const resp = await callAppsScriptGet({action:"getEvents", timeMin: timeMin.toISOString(), timeMax: timeMax.toISOString()});
-    calendarEvents = resp.events || [];
+    const resp = await callAppsScript("getEvents", {timeMin: timeMin.toISOString(), timeMax: timeMax.toISOString()});
+    calendarEvents = resp || [];
 
     const future = calendarEvents.filter(ev=>new Date(ev.inizio) >= now && !isCancelled(ev)).sort((a,b)=>new Date(a.inizio)-new Date(b.inizio));
 
@@ -970,7 +963,7 @@ async function testConnection(){
   report += "\n— YouTube API —\n" + (HAS_GOOGLE_KEY ? "✅ Chiave impostata\n" : "❌ GOOGLE_API_KEY non impostata\n");
   report += "\n— Apps Script (Calendario + scrittura) —\n";
   if(HAS_APPS_SCRIPT){
-    try{ const r = await fetch(CONFIG.APPS_SCRIPT_URL+"?action=ping"); const j = await r.json(); report += j.ok ? "✅ Apps Script raggiungibile\n" : "❌ Apps Script risponde con errore\n"; }
+    try{ await callAppsScript("ping", {}); report += "✅ Apps Script raggiungibile\n"; }
     catch(e){ report += "❌ Apps Script non raggiungibile: "+e.message+"\n"; }
   } else { report += "❌ APPS_SCRIPT_URL non impostato\n"; }
   alert(report);
