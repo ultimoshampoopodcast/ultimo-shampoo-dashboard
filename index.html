@@ -3,120 +3,170 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultimo Shampoo Podcast — Sala Regia</title>
+<title>Ultimo Shampoo Podcast — Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
   :root{
-    --bg-deep:#121319; --bg-panel:#1B1D25; --bg-panel-alt:#22242E;
-    --amber:#E8A33D; --red:#FF5A46; --teal:#4FD1C5; --grey-off:#5C5F6D;
-    --text-primary:#F4F1EA; --text-muted:#8C8FA0;
-    --border:#2C2F3A; --border-soft:#24262F;
-    --sidebar-w:220px;
+    --bg:#FAFAF9; --panel:#FFFFFF; --panel-alt:#F3F1F6;
+    --border:#E6E4EC; --border-soft:#EEEDF3;
+    --blue:#6FA3D8; --purple:#B48EDE; --pink:#F0A0C4; --amber:#EFA75E;
+    --text-primary:#23222B; --text-muted:#8B8894;
+    --grad: linear-gradient(120deg, var(--blue), var(--purple), var(--pink));
+    --sidebar-w:230px;
+    --ok:#5FB8A6; --bad:#E2705F;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
-    background:var(--bg-deep); color:var(--text-primary);
+    background:var(--bg); color:var(--text-primary);
     font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;
     background-image:
-      radial-gradient(circle at 15% 0%, rgba(232,163,61,0.06), transparent 40%),
-      radial-gradient(circle at 85% 10%, rgba(79,209,197,0.05), transparent 35%);
+      radial-gradient(circle at 10% 0%, rgba(111,163,216,0.06), transparent 40%),
+      radial-gradient(circle at 90% 15%, rgba(240,160,196,0.07), transparent 40%);
     display:flex; min-height:100vh;
   }
 
-  .sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg-panel);border-right:1px solid var(--border);padding:22px 14px;position:sticky;top:0;height:100vh;}
-  .sidebar-logo{font-family:'Fraunces',serif;font-weight:700;font-size:16px;margin-bottom:4px;}
-  .sidebar-logo span{color:var(--amber);font-style:italic;font-weight:500;}
-  .sidebar-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:26px;}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;color:var(--text-muted);margin-bottom:2px;transition:background .15s,color .15s;position:relative;}
-  .nav-item:hover{background:var(--bg-panel-alt);color:var(--text-primary);}
-  .nav-item.active{background:var(--bg-panel-alt);color:var(--text-primary);box-shadow:inset 3px 0 0 var(--amber);}
+  .sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--panel);border-right:1px solid var(--border);padding:20px 14px;position:sticky;top:0;height:100vh;overflow-y:auto;}
+  .sidebar-logo-wrap{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+  .sidebar-logo-wrap img{width:38px;height:38px;object-fit:cover;border-radius:9px;box-shadow:0 2px 8px rgba(180,142,222,.35);}
+  .sidebar-title{font-family:'Fraunces',serif;font-weight:700;font-size:14.5px;line-height:1.2;}
+  .sidebar-title span{color:var(--purple);font-style:italic;font-weight:500;}
+  .sidebar-sub{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--text-muted);margin:2px 0 22px 48px;letter-spacing:.06em;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;font-size:13.5px;color:var(--text-muted);margin-bottom:2px;transition:background .15s,color .15s;position:relative;}
+  .nav-item:hover{background:var(--panel-alt);color:var(--text-primary);}
+  .nav-item.active{background:var(--panel-alt);color:var(--text-primary);box-shadow:inset 3px 0 0 var(--purple);font-weight:500;}
   .nav-item .ic{font-size:15px;width:18px;text-align:center;}
-  .nav-item .warn-dot{width:6px;height:6px;border-radius:50%;background:var(--red);margin-left:auto;}
-  .sidebar-status{margin-top:24px;padding:10px 12px;border-radius:8px;background:var(--bg-panel-alt);font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--text-muted);line-height:1.7;}
-  .dot-ok{color:var(--teal);} .dot-bad{color:var(--red);} .dot-off{color:var(--grey-off);}
+  .nav-item .warn-dot{width:6px;height:6px;border-radius:50%;background:var(--bad);margin-left:auto;}
+  .sidebar-status{margin-top:22px;padding:10px 12px;border-radius:9px;background:var(--panel-alt);font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--text-muted);line-height:1.7;}
+  .dot-ok{color:var(--ok);} .dot-bad{color:var(--bad);}
 
-  main{flex:1;padding:28px 32px 80px;max-width:1180px;}
+  main{flex:1;padding:26px 30px 80px;max-width:1220px;}
   .page{display:none;} .page.active{display:block;}
 
-  .strip{display:flex;align-items:center;justify-content:space-between;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:14px 20px;margin-bottom:28px;flex-wrap:wrap;gap:12px;transition:border-color .3s;}
-  .strip.is-live{border-color:rgba(255,90,70,.4);}
-  .strip-left{display:flex;align-items:center;gap:14px;}
-  .rec-dot{width:10px;height:10px;border-radius:50%;background:var(--grey-off);}
-  .strip.is-live .rec-dot{background:var(--red);animation:pulse 2.2s infinite;}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,90,70,.45);}70%{box-shadow:0 0 0 9px rgba(255,90,70,0);}100%{box-shadow:0 0 0 0 rgba(255,90,70,0);}}
-  .strip-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--grey-off);text-transform:uppercase;transition:color .3s;}
-  .strip.is-live .strip-label{color:var(--red);}
-  .strip-right{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-  .btn-refresh{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--bg-deep);background:var(--amber);border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:600;}
-  .btn-refresh.alt{background:var(--teal);}
-  .btn-refresh:hover{opacity:.85;}
+  .strip{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px 20px;margin-bottom:26px;transition:box-shadow .3s,border-color .3s;}
+  .strip.is-live{border-color:rgba(226,112,95,.5);box-shadow:0 0 0 3px rgba(226,112,95,.08);}
+  .strip-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  .strip-left{display:flex;align-items:center;gap:12px;}
+  .rec-dot{width:10px;height:10px;border-radius:50%;background:#C9C7D1;}
+  .strip.is-live .rec-dot{background:var(--bad);animation:pulse 2.2s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(226,112,95,.4);}70%{box-shadow:0 0 0 9px rgba(226,112,95,0);}100%{box-shadow:0 0 0 0 rgba(226,112,95,0);}}
+  .strip-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--text-muted);text-transform:uppercase;}
+  .strip.is-live .strip-label{color:var(--bad);}
+  .strip-detail{font-size:13.5px;color:var(--text-primary);margin-top:6px;padding-left:22px;}
+  .strip-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);}
+  .btn{font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;color:#fff;background:var(--grad);border:none;padding:8px 14px;border-radius:8px;cursor:pointer;}
+  .btn:hover{opacity:.9;} .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-ghost{font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:var(--text-primary);background:var(--panel-alt);border:1px solid var(--border);padding:7px 12px;border-radius:8px;cursor:pointer;}
+  .btn-ghost:hover{border-color:var(--purple);}
+  .btn-small{font-size:11px;padding:5px 10px;border-radius:6px;}
 
-  h1{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(26px,4vw,38px);line-height:1.05;margin:0 0 8px;letter-spacing:-.01em;}
-  h1 span{color:var(--amber);font-style:italic;font-weight:500;}
-  .subtitle{color:var(--text-muted);font-size:14px;max-width:620px;line-height:1.5;margin-bottom:30px;}
+  h1{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(24px,3.6vw,34px);line-height:1.05;margin:0 0 6px;letter-spacing:-.01em;}
+  h1 span{color:var(--purple);font-style:italic;font-weight:500;}
+  .subtitle{color:var(--text-muted);font-size:13.5px;max-width:640px;line-height:1.5;margin-bottom:26px;}
 
-  .section-label{display:flex;align-items:center;gap:10px;margin:0 0 16px;}
-  .section-label .tag{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--bg-deep);background:var(--amber);padding:3px 8px;border-radius:4px;font-weight:600;}
-  .section-label h2{font-family:'Fraunces',serif;font-weight:600;font-size:18px;margin:0;}
+  .section-label{display:flex;align-items:center;gap:10px;margin:0 0 14px;}
+  .section-label .tag{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:var(--grad);padding:3px 8px;border-radius:5px;font-weight:600;}
+  .section-label h2{font-family:'Fraunces',serif;font-weight:600;font-size:17px;margin:0;}
   .section-label .line{flex:1;height:1px;background:var(--border);}
+  .section-label .spacer{flex:1;}
 
-  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:36px;}
-  .kpi-card{background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:18px 16px 14px;position:relative;}
-  .kpi-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--kpi-color,var(--amber));border-radius:10px 10px 0 0;}
-  .kpi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
-  .kpi-name{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--text-muted);}
-  .kpi-value{font-family:'IBM Plex Mono',monospace;font-size:30px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1;}
-  .kpi-unit{font-size:12.5px;color:var(--text-muted);font-weight:400;margin-left:4px;}
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px;}
+  .kpi-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 15px 13px;position:relative;}
+  .kpi-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--kpi-color,var(--purple));border-radius:12px 12px 0 0;}
+  .kpi-card.linkable{cursor:pointer;}
+  .kpi-card.linkable:hover{border-color:var(--purple);}
+  .kpi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
+  .kpi-name{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);}
+  .kpi-value{font-family:'IBM Plex Mono',monospace;font-size:27px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1;}
+  .kpi-unit{font-size:12px;color:var(--text-muted);font-weight:400;margin-left:4px;}
 
   table{width:100%;border-collapse:collapse;font-size:13px;}
-  thead th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);padding:10px 12px;border-bottom:1px solid var(--border);}
-  tbody td{padding:11px 12px;border-bottom:1px solid var(--border-soft);vertical-align:middle;}
-  tbody tr:hover{background:var(--bg-panel-alt);}
-  .table-wrap{background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:36px;}
+  thead th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);padding:10px 12px;border-bottom:1px solid var(--border);}
+  tbody td{padding:10px 12px;border-bottom:1px solid var(--border-soft);vertical-align:middle;}
+  tbody tr:hover{background:var(--panel-alt);}
+  .table-wrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:32px;}
   .table-wrap .table-scroll{overflow-x:auto;}
 
-  .badge{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:3px 8px;border-radius:5px;display:inline-block;}
-  .badge.stato-pubblicato{background:rgba(79,209,197,.15);color:var(--teal);}
-  .badge.stato-idea,.badge.stato-dachiamare{background:rgba(140,143,160,.18);color:var(--text-muted);}
-  .badge.stato-confermato,.badge.stato-chiamato{background:rgba(232,163,61,.18);color:var(--amber);}
-  .badge.stato-registrato,.badge.stato-montaggio{background:rgba(255,90,70,.15);color:var(--red);}
+  .badge{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 8px;border-radius:5px;display:inline-block;white-space:nowrap;}
+  .badge.b-blue{background:rgba(111,163,216,.15);color:#3D77AD;}
+  .badge.b-purple{background:rgba(180,142,222,.16);color:#8B57BE;}
+  .badge.b-pink{background:rgba(240,160,196,.18);color:#C15E8D;}
+  .badge.b-amber{background:rgba(239,167,94,.18);color:#B5722C;}
+  .badge.b-grey{background:rgba(139,136,148,.13);color:var(--text-muted);}
+  .badge.b-red{background:rgba(226,112,95,.14);color:#B7442F;}
 
-  .call-btn{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:5px 9px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;}
-  .call-btn:hover{border-color:var(--amber);color:var(--amber);}
-  .call-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .icon-btn{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:5px 9px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;}
+  .icon-btn:hover{border-color:var(--purple);color:var(--purple);}
+  .icon-btn:disabled{opacity:.4;cursor:not-allowed;}
 
-  .empty-state{padding:30px;text-align:center;color:var(--text-muted);font-size:13px;font-family:'IBM Plex Mono',monospace;}
+  .empty-state{padding:26px;text-align:center;color:var(--text-muted);font-size:12.5px;font-family:'IBM Plex Mono',monospace;}
 
-  .alert-box{border-radius:10px;padding:13px 18px;font-size:13px;margin-bottom:22px;display:flex;gap:10px;align-items:flex-start;}
-  .alert-box.warn{background:rgba(232,163,61,.1);border:1px solid rgba(232,163,61,.35);color:#ffd9a0;}
-  .alert-box.error{background:rgba(255,90,70,.1);border:1px solid rgba(255,90,70,.35);color:#ffb3a8;}
-  .alert-box code{background:rgba(0,0,0,.25);padding:1px 5px;border-radius:4px;}
+  .alert-box{border-radius:10px;padding:12px 16px;font-size:12.5px;margin-bottom:20px;}
+  .alert-box.warn{background:rgba(239,167,94,.1);border:1px solid rgba(239,167,94,.4);color:#8A5A1E;}
+  .alert-box.error{background:rgba(226,112,95,.1);border:1px solid rgba(226,112,95,.4);color:#93341F;}
+  .alert-box code{background:rgba(0,0,0,.06);padding:1px 5px;border-radius:4px;}
   .alert-box.hidden{display:none;}
 
-  .cal-embed-wrap{background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:24px;}
-  .cal-embed-wrap iframe{width:100%;height:560px;border:0;display:block;filter:invert(0.92) hue-rotate(180deg) contrast(0.92);}
-
-  footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--border);font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);}
-
-  @media (max-width:900px){
-    body{flex-direction:column;}
-    .sidebar{width:100%;height:auto;position:relative;display:flex;align-items:center;gap:10px;overflow-x:auto;padding:14px;}
-    .sidebar-logo,.sidebar-sub,.sidebar-status{display:none;}
-    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .form-panel{background:var(--panel-alt);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:18px;}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px;}
+  .form-panel input, .form-panel select, .form-panel textarea{
+    width:100%;background:var(--panel);border:1px solid var(--border);color:var(--text-primary);
+    border-radius:7px;padding:8px 10px;font-family:'Inter',sans-serif;font-size:12.5px;
   }
-  :focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
+  .form-panel label{font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);display:block;margin-bottom:3px;}
+  .form-field{display:flex;flex-direction:column;}
+  .note-input{width:100%;background:transparent;border:1px solid transparent;border-radius:6px;padding:4px 6px;font-family:'Inter',sans-serif;font-size:12.5px;color:var(--text-primary);}
+  .note-input:hover{border-color:var(--border);} .note-input:focus{border-color:var(--purple);outline:none;background:var(--panel);}
+
+  .cal-highlights{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px;}
+  .cal-highlight-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+  .cal-highlight-card .hl-label{font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
+  .cal-highlight-card .hl-main{font-size:14px;font-weight:600;}
+  .cal-highlight-card .hl-sub{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
+
+  .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:28px;}
+  .week-day{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px;min-height:130px;}
+  .week-day.is-today{border-color:var(--purple);box-shadow:0 0 0 2px rgba(180,142,222,.15);}
+  .week-day-head{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;}
+  .week-day-head b{color:var(--text-primary);font-size:14px;}
+  .week-event{font-size:10.5px;padding:4px 6px;border-radius:5px;margin-bottom:4px;background:var(--panel-alt);cursor:default;line-height:1.3;}
+  .week-event.ev-rec{background:rgba(226,112,95,.13);color:#93341F;}
+  .week-event.ev-cancel{background:rgba(139,136,148,.13);color:var(--text-muted);text-decoration:line-through;}
+  .week-event.ev-other{background:rgba(111,163,216,.13);color:#3D77AD;}
+
+  .task-group{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden;}
+  .task-group-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--panel-alt);border-bottom:1px solid var(--border);}
+  .task-group-head h3{font-family:'Fraunces',serif;font-size:15px;margin:0;font-weight:600;}
+  .task-row{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border-soft);}
+  .task-row:last-child{border-bottom:none;}
+  .task-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--purple);}
+  .task-row.done .task-title{text-decoration:line-through;color:var(--text-muted);}
+  .task-title{flex:1;font-size:13px;}
+  .task-meta{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--text-muted);}
+
+  footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--border);font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--text-muted);}
+
+  @media (max-width:980px){
+    body{flex-direction:column;}
+    .sidebar{width:100%;height:auto;position:relative;display:flex;align-items:center;gap:10px;overflow-x:auto;padding:12px;}
+    .sidebar-title,.sidebar-sub,.sidebar-status{display:none;}
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .cal-highlights{grid-template-columns:1fr;}
+    .week-grid{grid-template-columns:repeat(2,1fr);}
+  }
+  :focus-visible{outline:2px solid var(--purple);outline-offset:2px;}
 </style>
 </head>
 <body>
 
 <nav class="sidebar">
-  <div class="sidebar-logo">Ultimo <span>Shampoo</span></div>
-  <div class="sidebar-sub">SALA REGIA · DASHBOARD</div>
+  <div class="sidebar-logo-wrap"><img id="logoImg" alt="Ultimo Shampoo Podcast"><div class="sidebar-title">Ultimo <span>Shampoo</span></div></div>
+  <div class="sidebar-sub">DASHBOARD DI PRODUZIONE</div>
   <div class="nav-item active" data-page="home"><span class="ic">🏠</span> Home</div>
   <div class="nav-item" data-page="episodi"><span class="ic">🎬</span> Episodi<span class="warn-dot" id="warnEpisodi" style="display:none"></span></div>
+  <div class="nav-item" data-page="task"><span class="ic">✅</span> Task<span class="warn-dot" id="warnTask" style="display:none"></span></div>
   <div class="nav-item" data-page="kpi-canale"><span class="ic">📈</span> KPI Canale<span class="warn-dot" id="warnYoutube" style="display:none"></span></div>
   <div class="nav-item" data-page="attrezzatura"><span class="ic">🎥</span> Attrezzatura<span class="warn-dot" id="warnAttrezzatura" style="display:none"></span></div>
   <div class="nav-item" data-page="calendario"><span class="ic">📅</span> Calendario<span class="warn-dot" id="warnCalendario" style="display:none"></span></div>
@@ -126,53 +176,72 @@
 
 <main>
 
-  <!-- ============ HOME ============ -->
   <section class="page active" id="page-home">
     <div class="strip" id="onAirStrip">
-      <div class="strip-left"><div class="rec-dot"></div><span class="strip-label" id="onAirLabel">Verifica calendario...</span></div>
-      <div class="strip-right"><span id="lastUpdate">—</span><button class="btn-refresh" onclick="refreshAll()">↻ Aggiorna</button><button class="btn-refresh alt" onclick="testConnection()">🔍 Diagnostica</button></div>
+      <div class="strip-top">
+        <div class="strip-left"><div class="rec-dot"></div><span class="strip-label" id="onAirLabel">Verifica calendario...</span></div>
+        <div class="strip-right"><span id="lastUpdate">—</span><button class="btn-ghost btn-small" onclick="refreshAll()">↻ Aggiorna</button><button class="btn-ghost btn-small" onclick="testConnection()">🔍 Diagnostica</button></div>
+      </div>
+      <div class="strip-detail" id="onAirDetail"></div>
     </div>
-    <h1>Sala regia <span>&mdash; Ultimo Shampoo</span></h1>
-    <p class="subtitle">Numeri di produzione dal Google Sheet, canale YouTube in diretta, calendario dal Google Calendar del team.</p>
+    <h1>Dashboard <span>&mdash; Ultimo Shampoo</span></h1>
+    <p class="subtitle">Produzione, canale YouTube, calendario e task — letti e scritti in diretta dal foglio Google e da Google Calendar.</p>
 
     <div id="globalAlerts"></div>
 
     <div class="section-label"><span class="tag">01</span><h2>Numeri chiave</h2><div class="line"></div></div>
     <div class="kpi-grid">
-      <div class="kpi-card" style="--kpi-color:#E8A33D"><div class="kpi-top"><span class="kpi-name">Episodi totali</span></div><div class="kpi-value" id="kpiEpisodiTotali">—</div></div>
-      <div class="kpi-card" style="--kpi-color:#4FD1C5"><div class="kpi-top"><span class="kpi-name">Pubblicati</span></div><div class="kpi-value" id="kpiPubblicati">—</div></div>
-      <div class="kpi-card" style="--kpi-color:#E8A33D"><div class="kpi-top"><span class="kpi-name">Iscritti canale</span></div><div class="kpi-value" id="kpiIscritti">—</div></div>
-      <div class="kpi-card" style="--kpi-color:#FF5A46"><div class="kpi-top"><span class="kpi-name">Ospiti da chiamare</span></div><div class="kpi-value" id="kpiDaChiamare">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Episodi totali</span></div><div class="kpi-value" id="kpiEpisodiTotali">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#B48EDE"><div class="kpi-top"><span class="kpi-name">Iscritti canale</span></div><div class="kpi-value" id="kpiIscritti">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#F0A0C4"><div class="kpi-top"><span class="kpi-name">Ospiti da chiamare</span></div><div class="kpi-value" id="kpiDaChiamare">—</div></div>
+      <div class="kpi-card linkable" style="--kpi-color:#EFA75E" onclick="goToPage('task')"><div class="kpi-top"><span class="kpi-name">Task in sospeso</span></div><div class="kpi-value" id="kpiTaskSospesi">—</div></div>
     </div>
 
-    <div class="section-label"><span class="tag">02</span><h2>Prossimi eventi in calendario</h2><div class="line"></div></div>
+    <div class="section-label"><span class="tag">02</span><h2>Prossimi 5 eventi in calendario</h2><div class="line"></div></div>
     <div class="table-wrap"><div class="table-scroll">
       <table><thead><tr><th>Quando</th><th>Evento</th></tr></thead>
       <tbody id="homeCalendarBody"><tr><td colspan="2" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
   </section>
 
-  <!-- ============ EPISODI ============ -->
   <section class="page" id="page-episodi">
-    <div class="section-label"><span class="tag">EP</span><h2>Episodi — da Palinsesto</h2><div class="line"></div></div>
+    <div class="section-label"><span class="tag">EP</span><h2>Episodi</h2><div class="spacer"></div><button class="btn btn-small" onclick="toggleForm('formEpisodio')">+ Nuovo episodio</button></div>
     <div id="alertEpisodi" class="alert-box error hidden"></div>
-    <p class="subtitle">Dati letti dalla tab "Palinsesto". Views/like recuperati in diretta da YouTube quando è presente un link video valido.</p>
+    <p class="subtitle">Stato calcolato automaticamente dal calendario (non modificabile qui). Le note sono libere e si salvano subito.</p>
+
+    <div class="form-panel" id="formEpisodio" style="display:none">
+      <div class="form-grid">
+        <div class="form-field"><label>Titolo</label><input id="epTitolo" placeholder="Titolo episodio"></div>
+        <div class="form-field"><label>Ospiti esterni</label><input id="epOspiti" placeholder="Nome ospite"></div>
+        <div class="form-field"><label>Conduttore</label><input id="epConduttore" placeholder="Conduttore"></div>
+        <div class="form-field"><label>Co-host</label><input id="epCohost" placeholder="Co-host"></div>
+        <div class="form-field"><label>Data pubblicazione (opz.)</label><input type="date" id="epDataPubb"></div>
+      </div>
+      <button class="btn" onclick="addEpisode()">Salva episodio</button>
+    </div>
+
     <div class="table-wrap"><div class="table-scroll">
-      <table><thead><tr><th>Cod.</th><th>Titolo</th><th>Ospite</th><th>Stato</th><th>Data pubbl.</th><th>Views</th><th>Like</th></tr></thead>
+      <table><thead><tr><th>Cod.</th><th>Titolo</th><th>Ospite</th><th>Stato</th><th>Data</th><th>Views</th><th>Note</th></tr></thead>
       <tbody id="episodiBody"><tr><td colspan="7" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
   </section>
 
-  <!-- ============ KPI CANALE ============ -->
+  <section class="page" id="page-task">
+    <div class="section-label"><span class="tag">TASK</span><h2>Task per episodio</h2><div class="line"></div></div>
+    <div id="alertTask" class="alert-box error hidden"></div>
+    <p class="subtitle">Da tab "Checklist_puntate", collegata a ogni episodio tramite Cod_puntata. Per un episodio con Data pubblicazione impostata, puoi generare automaticamente il flusso standard di post-produzione.</p>
+    <div id="taskGroups"><div class="empty-state">Caricamento...</div></div>
+  </section>
+
   <section class="page" id="page-kpi-canale">
     <div class="section-label"><span class="tag">YT</span><h2>KPI del canale YouTube</h2><div class="line"></div></div>
     <div id="alertYoutube" class="alert-box warn hidden"></div>
-    <p class="subtitle">Dati live dal canale <a href="https://www.youtube.com/@UltimoShampooPodcast" target="_blank" style="color:var(--teal)">@UltimoShampooPodcast</a> via YouTube Data API.</p>
+    <p class="subtitle">Dati live dal canale <a href="https://www.youtube.com/@UltimoShampooPodcast" target="_blank" style="color:var(--purple)">@UltimoShampooPodcast</a>.</p>
     <div class="kpi-grid">
-      <div class="kpi-card" style="--kpi-color:#FF5A46"><div class="kpi-top"><span class="kpi-name">Iscritti</span></div><div class="kpi-value" id="ytSubs">—</div></div>
-      <div class="kpi-card" style="--kpi-color:#E8A33D"><div class="kpi-top"><span class="kpi-name">Views totali canale</span></div><div class="kpi-value" id="ytViews">—</div></div>
-      <div class="kpi-card" style="--kpi-color:#4FD1C5"><div class="kpi-top"><span class="kpi-name">Video pubblicati</span></div><div class="kpi-value" id="ytVideos">—</div></div>
-      <div class="kpi-card" style="--kpi-color:#E8A33D"><div class="kpi-top"><span class="kpi-name">Views medie/episodio</span></div><div class="kpi-value" id="ytAvg">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#EFA75E"><div class="kpi-top"><span class="kpi-name">Iscritti</span></div><div class="kpi-value" id="ytSubs">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Views totali canale</span></div><div class="kpi-value" id="ytViews">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#B48EDE"><div class="kpi-top"><span class="kpi-name">Video pubblicati</span></div><div class="kpi-value" id="ytVideos">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#F0A0C4"><div class="kpi-top"><span class="kpi-name">Views medie/episodio</span></div><div class="kpi-value" id="ytAvg">—</div></div>
     </div>
     <div class="section-label"><span class="tag">TOP</span><h2>Episodi per views</h2><div class="line"></div></div>
     <div class="table-wrap"><div class="table-scroll">
@@ -181,44 +250,109 @@
     </div></div>
   </section>
 
-  <!-- ============ ATTREZZATURA ============ -->
   <section class="page" id="page-attrezzatura">
-    <div class="section-label"><span class="tag">GEAR</span><h2>Inventario attrezzatura</h2><div class="line"></div></div>
+    <div class="section-label"><span class="tag">GEAR</span><h2>Inventario attrezzatura</h2><div class="spacer"></div><button class="btn btn-small" onclick="toggleForm('formAttrezzatura')">+ Nuova attrezzatura</button></div>
     <div id="alertAttrezzatura" class="alert-box error hidden"></div>
-    <p class="subtitle">Letto dalla tab "Inventario attrezzatura". Servono le colonne: Nome, Categoria, Proprietario, Costo, Stato.</p>
+
+    <div class="form-panel" id="formAttrezzatura" style="display:none">
+      <div class="form-grid">
+        <div class="form-field"><label>Nome</label><input id="atNome" placeholder="Es. Microfono Rode"></div>
+        <div class="form-field"><label>Categoria</label><input id="atCategoria" placeholder="Es. Microfoni"></div>
+        <div class="form-field"><label>Proprietario</label><input id="atProprietario" placeholder="Podcast / Nome"></div>
+        <div class="form-field"><label>Costo (€)</label><input type="number" id="atCosto" placeholder="0"></div>
+        <div class="form-field"><label>Stato</label>
+          <select id="atStato"><option>Funzionante</option><option>Da controllare</option><option>In riparazione</option><option>Rotto</option></select>
+        </div>
+        <div class="form-field"><label>Da sostituire</label>
+          <select id="atDaSostituire"><option>No</option><option>Si</option></select>
+        </div>
+      </div>
+      <button class="btn" onclick="addEquipment()">Salva attrezzatura</button>
+    </div>
+
     <div class="kpi-grid">
-      <div class="kpi-card" style="--kpi-color:#E8A33D"><div class="kpi-top"><span class="kpi-name">Valore totale</span></div><div class="kpi-value" id="attrValoreTot">—</div></div>
-      <div class="kpi-card" style="--kpi-color:#FF5A46"><div class="kpi-top"><span class="kpi-name">Da sostituire</span></div><div class="kpi-value" id="attrDaSostituire">—</div></div>
-      <div class="kpi-card" style="--kpi-color:#4FD1C5"><div class="kpi-top"><span class="kpi-name">Pezzi totali</span></div><div class="kpi-value" id="attrTotale">—</div></div>
-      <div class="kpi-card" style="--kpi-color:#E8A33D"><div class="kpi-top"><span class="kpi-name">Proprietari coinvolti</span></div><div class="kpi-value" id="attrProprietari">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#EFA75E"><div class="kpi-top"><span class="kpi-name">Valore totale</span></div><div class="kpi-value" id="attrValoreTot">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#E2705F"><div class="kpi-top"><span class="kpi-name">Da sostituire</span></div><div class="kpi-value" id="attrDaSostituire">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Pezzi totali</span></div><div class="kpi-value" id="attrTotale">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#B48EDE"><div class="kpi-top"><span class="kpi-name">Proprietari coinvolti</span></div><div class="kpi-value" id="attrProprietari">—</div></div>
     </div>
     <div class="table-wrap"><div class="table-scroll">
-      <table><thead><tr><th>Nome</th><th>Categoria</th><th>Proprietario</th><th>Costo</th><th>Stato</th></tr></thead>
-      <tbody id="attrezzaturaBody"><tr><td colspan="5" class="empty-state">Caricamento...</td></tr></tbody></table>
+      <table><thead><tr><th>Nome</th><th>Categoria</th><th>Proprietario</th><th>Costo</th><th>Stato</th><th></th></tr></thead>
+      <tbody id="attrezzaturaBody"><tr><td colspan="6" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
   </section>
 
-  <!-- ============ CALENDARIO ============ -->
   <section class="page" id="page-calendario">
-    <div class="section-label"><span class="tag">CAL</span><h2>Calendario — Google Calendar del team</h2><div class="line"></div></div>
+    <div class="section-label"><span class="tag">CAL</span><h2>Calendario</h2><div class="spacer"></div><button class="btn btn-small" onclick="toggleForm('formEvento')">+ Nuovo evento</button></div>
     <div id="alertCalendario" class="alert-box warn hidden"></div>
-    <p class="subtitle">Vista live del calendario condiviso. Per aggiungere un'attività usa il bottone: apre Google Calendar già pronto a salvare.</p>
-    <div style="margin-bottom:20px">
-      <button class="btn-refresh" onclick="openNewEventWindow()">+ Nuovo evento</button>
+
+    <div class="form-panel" id="formEvento" style="display:none">
+      <div class="form-grid">
+        <div class="form-field"><label>Data (obbligatoria)</label><input type="date" id="evData" required></div>
+        <div class="form-field"><label>Ora inizio (opz.)</label><input type="time" id="evOraInizio"></div>
+        <div class="form-field"><label>Ora fine (opz.)</label><input type="time" id="evOraFine"></div>
+        <div class="form-field"><label>Tipo</label>
+          <select id="evTipo" onchange="onEventTypeChange()">
+            <option value="Altro">Altro</option>
+            <option value="Registrazione">Registrazione</option>
+            <option value="Pubblicazione">Pubblicazione</option>
+            <option value="Montaggio">Montaggio</option>
+            <option value="Riunione">Riunione</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid" id="evEpisodioWrap" style="display:none">
+        <div class="form-field">
+          <label>Puntata</label>
+          <select id="evEpisodio" onchange="onEpisodeSelectChange()">
+            <option value="">— seleziona puntata —</option>
+            <option value="__new__">+ Nuova puntata...</option>
+          </select>
+        </div>
+        <div class="form-field" id="evNuovaPuntataWrap" style="display:none">
+          <label>Titolo nuova puntata</label>
+          <input id="evNuovoTitolo" placeholder="Titolo provvisorio">
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field" style="grid-column:1/-1"><label>Note (opz.)</label><input id="evNote" placeholder="Note libere"></div>
+      </div>
+      <button class="btn" onclick="addCalendarEventFromForm()">Salva evento</button>
     </div>
-    <div class="cal-embed-wrap" id="calEmbedWrap"></div>
-    <div class="section-label"><span class="tag">→</span><h2>Prossimi 10 eventi</h2><div class="line"></div></div>
+
+    <div class="section-label"><span class="tag">→</span><h2>In evidenza</h2><div class="line"></div></div>
+    <div class="cal-highlights" id="calHighlights">
+      <div class="cal-highlight-card"><div class="hl-label">Prossima registrazione</div><div class="hl-main" id="hlNextRec">—</div><div class="hl-sub" id="hlNextRecSub"></div></div>
+      <div class="cal-highlight-card"><div class="hl-label">Prossima pubblicazione</div><div class="hl-main" id="hlNextPub">—</div><div class="hl-sub" id="hlNextPubSub"></div></div>
+      <div class="cal-highlight-card"><div class="hl-label">Eventi questa settimana</div><div class="hl-main" id="hlWeekCount">—</div><div class="hl-sub">nei prossimi 7 giorni</div></div>
+    </div>
+
+    <div class="section-label"><span class="tag">7GG</span><h2>Vista settimanale</h2><div class="spacer"></div><button class="btn-ghost btn-small" onclick="shiftWeek(-1)">← Sett. prec.</button><button class="btn-ghost btn-small" onclick="shiftWeek(1)">Sett. succ. →</button></div>
+    <div class="week-grid" id="weekGrid"></div>
+
+    <div class="section-label"><span class="tag">→</span><h2>Prossimi eventi (30 giorni)</h2><div class="line"></div></div>
     <div class="table-wrap"><div class="table-scroll">
-      <table><thead><tr><th>Quando</th><th>Evento</th><th>Tipo rilevato</th></tr></thead>
-      <tbody id="calendarioBody"><tr><td colspan="3" class="empty-state">Caricamento...</td></tr></tbody></table>
+      <table><thead><tr><th>Quando</th><th>Evento</th><th>Tipo</th><th></th></tr></thead>
+      <tbody id="calendarioBody"><tr><td colspan="4" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
   </section>
 
-  <!-- ============ OSPITI ============ -->
   <section class="page" id="page-ospiti">
-    <div class="section-label"><span class="tag">OSP</span><h2>Ospiti — da chiamare / chiamati</h2><div class="line"></div></div>
-    <div id="alertOspiti" class="alert-box warn hidden"></div>
-    <p class="subtitle">Cambiando stato da qui, si aggiorna direttamente la tab "Ospiti" del foglio.</p>
+    <div class="section-label"><span class="tag">OSP</span><h2>Ospiti</h2><div class="spacer"></div><button class="btn btn-small" onclick="toggleForm('formOspite')">+ Nuovo ospite</button></div>
+    <div id="alertOspiti" class="alert-box error hidden"></div>
+
+    <div class="form-panel" id="formOspite" style="display:none">
+      <div class="form-grid">
+        <div class="form-field"><label>Nome</label><input id="osNome" placeholder="Nome ospite"></div>
+        <div class="form-field"><label>Contatti</label><input id="osContatti" placeholder="Email o telefono"></div>
+        <div class="form-field"><label>Temi</label><input id="osTemi" placeholder="Temi trattabili"></div>
+        <div class="form-field"><label>Stato iniziale</label>
+          <select id="osStato"><option>Da chiamare</option><option>Chiamato</option><option>Confermato</option></select>
+        </div>
+      </div>
+      <button class="btn" onclick="addGuest()">Salva ospite</button>
+    </div>
+
     <div class="table-wrap"><div class="table-scroll">
       <table><thead><tr><th>Nome</th><th>Contatti</th><th>Temi</th><th>Stato</th><th>Azione</th></tr></thead>
       <tbody id="ospitiBody"><tr><td colspan="5" class="empty-state">Caricamento...</td></tr></tbody></table>
@@ -226,146 +360,181 @@
   </section>
 
   <footer>
-    <span>Sheet: produzione, ospiti, attrezzatura · Calendar: pianificazione · YouTube: performance canale</span>
+    <span>Sheet: Palinsesto, Ospiti, Inventario, Checklist_puntate · Calendar: pianificazione · YouTube: performance canale</span>
   </footer>
 
 </main>
 
 <script>
-/* =====================================================================
-   CONFIGURAZIONE — compila questi valori prima di usare la dashboard
-   Vedi Setup_Dashboard_Live.md per come ottenerli
-   ===================================================================== */
 const CONFIG = {
   SHEET_ID: "1-PDe062FZUGOtaBBBcYRWkvFNT7Ya3YC55ZjggUcw5s",
-  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxkfGMAylsQbi0Uif4ZqsKGgl06EygMWO3Q-C5qo2HsB_8J5mKIEgvBWzDZCNzU9Dvy/exec",          // scrittura stato ospiti
-  GOOGLE_API_KEY: "AIzaSyDHl09KU9mKfrKISKusemGFZi55-UbB1jE",         // usata sia per YouTube che Calendar
+  APPS_SCRIPT_URL: "INCOLLA_QUI_URL_WEB_APP",
+  GOOGLE_API_KEY: "INCOLLA_QUI_LA_TUA_API_KEY",
   YOUTUBE_HANDLE: "UltimoShampooPodcast",
-  GOOGLE_CALENDAR_ID: "ultimoshampoopodcast@gmail.com",      // es. tuonome@gmail.com o ID calendario condiviso
-  ON_AIR_KEYWORD: "registrazione",                      // parola chiave nel titolo evento per attivare "on air"
-  TABS: { palinsesto: "Palinsesto", ospiti: "Ospiti", inventario: "Inventario attrezzatura" }
+  ON_AIR_KEYWORD: "registrazione",
+  TABS: { palinsesto: "Palinsesto", ospiti: "Ospiti", inventario: "Inventario attrezzatura", checklist: "Checklist_puntate" }
 };
+const LOGO_B64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCAD9APADASIAAhEBAxEB/8QAHAAAAQUBAQEAAAAAAAAAAAAABAABAwUGAgcI/8QARhAAAQMDAgIGBQkFCAICAwAAAQIDBAAFERIhBjETIkFRYXEUcoGRsQcjJDIzNFKhwRVCVJLRQ1Nic4Ki4fAWRJPxY4Oy/8QAGQEBAAMBAQAAAAAAAAAAAAAAAAECAwQF/8QAKxEAAgICAgEDAwMFAQAAAAAAAAECEQMhEjEEIkFRMmFxE4GhFCNCsdHw/9oADAMBAAIRAxEAPwD6XIpqL6EYqFxopGcAjvoAKf8AdV+z40T/AGbfqD4UPcRiKvPcPjRKRlhs/wCEfCoBzjFKlilmpAuVLNNzpUBw/wDZL8jXTP3Vn1a5f+yX5GumRiKz6tALFI0qRoDk0qc01AcPj5pfkaTX2DXqCk/9ivyNJr7u0f8ACKA7pZxXIOaVAImmpGkKAHlnrR/80frRTn1jQk360f8AzU0U59c+dAN2VzT8qY0AjTUqVARSfu7nqn4U8f7q16tNK+7ueqfhSjfdWvV/WoB2abFOaYmpBcFwVwVZyOyuceFIcqAEuv3U+X60S0Mst+qPhQt1+6qPh+tFsfd2/VHwoDkoI7K5KSN8VOk106Pms4oAXlTE0lUhQHD32SvI1Iz9zaqN/wCyV5GumfuTVAdUxNMaQoBjUT7pZQCE6ipQSBnAye+pTXK0pWkpUAQewigIOlLjLwUAFIyk4Ox2z+tTI+7M+oKqrq48H0QmPmmUtF5wp2Kt8BORuO3ON6GgmXbpUFovuyI0sFJS4oq6NWCQQTvjblV1C9kN0Xoro8qbGDSqhJE+90WgBOpbitKRnGTjPPyBpR3umCwpBQtCtKk5zvjPPyIqJ11p0hKkuBKV6Q4NsK5bdvhU6EJQMDt3JPMmgIJu6o/+ami3BhavOg5xwY/+an9aMd+0V50BxSpU1AI01KkTQEUo/RnPVNKMMRGPU/Wmkj6O56p+FdMKzFYPegVAOjTGnpjUgl9OuBP2B9//ABT+mz8fYH3/APFWAbR2pqRMds9lAUct2W+wpLrASDzUTy/KiBKlBCUJj9UAYOef5VLeEBuOoJ22ophsKjNEgZwKgAAkzB/YY9v/ABXSpUxQwWdvP/irBLKfwio30pQcAAUAB0knP2H50g5K/uB/NRBO+1LepAK6qSUK1MpAwdyrlXSXHgw2hDQUkDnnGa7knLCx/hNVLd6kpiB8IiojNqWgBxZDjmnmR2DtwN6KLfRDdbLHpJP8PnyVTdLJ/hz76r2mW7iyHlyXFuLAVlDhAR3AAcqzHEPGcuO0u0QXQ5MSopVI7k5237+eT4VtHBKTpMpLIoq2W9+45iWNfQKR6RLJ0hhpWSD41ROXTi694WlfoMdW4aaQQrHZk8/cabhPhHoczbgS9JcOorWNwf6VrC+2yn623Z3muq8WLUVb+Tl5ZMj+DLJs1219K5I6VsDGkMjV49bcq9tTrtNxaCOjdc6uSFaEk+/Awav13IBtWwAIOMV3HdbfjNFSx1k75HbXNkzU/UtG8cWVL0lYxeLjDbHToWocwSOY8ASc+wirVi8KkHCQ12jVqISfaeXtqVcbXhTLoKQNJZXulX9DWeucVodL0RW0SAh1rtSD2jvHOsbhL6XRqpS/zRat3B59C3WWWywleoKWohKlc+rt31xF4mEiWmEptDchRwlKicLPcD30Fb7u01IFvlaUNDqsZOyd8AeXw5GgeJoQMWQ+ydDkdSVtqHNKuYqYRt+pmjg40mal70t1bKVtIT84COtz8KUi4ONuK6TokgK0qVvpB7s0QpaiYiljCipJI7jihXYUhTb0TKOhXrAcJOoJJO2O/fvqqRVhJ9MG2hr30vpf4G/fUyeqkJHIDAp9W1AQH0z8Df8ANTfS/wADfvqfVTE4qADP+kdCvWlsJ0nJzTNrkFlsNtJKAkBJKuYqSWcxnfVPwruNtEY/yxQEJVK/ukfzUxVL/ukfzURSqQWyFZAzU6TtQqeXtrtKymgBb5gRyfCioqvojfkPhQV5VqiE/wCH9aJYXpiN/wCn4UAYBihpRBV7K7U4aHdVlVAR4pHanps0AHdZaINtkylglLTZVjv7h76zcW1qW0HiErcdJKypORvucdw8KuOIFxp8CXbG5ccS3GyENlwatXMDHPmBUFlnMuWxjV1HM4UhXNJHMVtjtRbRlNW9lJfrl/4nCbW8rPSHQ2UnCh/3NU3Ddo6aT6S8E5eJXgDk2k7DfvJHuobjaUb7xkxDSSti3oCiAdio99WvC80OynIucqaSQrnsNiMe8VOeUoqMfnbJxY1Lk17aNOp8NthCMDAwaHSlTvfjtJ5mpGmdSSTzJzRLTOwpSWy0Wor0gTkf5tWNtjTNJWGGu0af1qzWyOiVt2GuWWB6Kzj8P60c0yVKS2gdp3UkJCilQoa5gyWXVHPSo3yOZFHLjY3GxoZ5lRyRnNYSgvY25KXfZkJqV3WDlhpZWjJ1p2Pu7Ku+GFp4kitB11OiIsF9A+s6scs+G2/ligbe61Bvz0MBIcXlWwIUUkjfu2zUfDcd/h/jeS0sj0OcSlJBGNZGR48wffWam5RTfd0TxSbS+LRpLjMmzp5iwHUxxHdShTxbCypwjOADsAARuc70TBmy27h+z56kOuLQpxp1KdOoJICgRyz1gdqHlxpduuRkxGPSWpDwcU0FBKkr04OM7EHA7aJiQpL91VdJrYYWlssssBeooBIKiojbJwOXKttUc5acqgfkBkhIQpxxWSEJxnHfvsBU1VkxDke5iYUqWypoNnSM6CCTkgdhz+VQiWFR5qH3FMqbW08Bq0LA3HeCNjRBFVzKVS7i3KQFBpptSQogjUVY5Z8qseyoYRFKH0dz1T8KeN90Y9QU0r7s56p+FPG2iMeoKgk7OKbNOa5OwqQWaDtiujXKTXR5GgAbrvCPl+tEIOIrY8vhQ90+6EDu/Wp0HMdvyHwFASrXtt3VETmkTnamoBUFeXHmrTMcjEpeSyooUkZIOOY8Rzo3spqAzj9jtH7DUUNNqb6MrDhVknb62rv7c1LbrKxdrLbpkgvMy1tpK3UKwpzuKhyJIxvjNEv8P2tIcdENO4JKNSujJ9TOn8qNcnRYEGO5KkssIJwC4sJBOM4Ga0eRvrsrSPAzc337veUMJShYlqjqcA6ywdRyT5DHvrZfJ6sPy5eWk62khKlhWdXs8tIrF3ENRr/xDDaeWptx5byQjSUEaiEnVz577VZcJ8QDhOyreajKl3O6PfNIGyUIAyCpXYCTj/TVs+RTy8K3p/tRthilg5/dr+T11LWk47+dEIRyrxefx9xa2h6U5LhtlOyWG+qhPPfON/f2U1i+V/iZ9C3nocWS1Hx0qWnE5KO1YB327f0rSGF5FcGmc2SbxupRaPbHU4ZXt2Gmjo+hsH/DVfY+IYnEloM2IoHA0uI7ULxuDUtxurVmsaZbg1qS2ejbB3cXvhI865nadM0jtaDFJ2qBbWTyrxu7fK1xWiQVMMQ2mVDKUhQCk94VnJyKvuHJnyiXJhNy9JgSo6iCGekQFY7jjIB9xro/ppKPJyRR5adUy5jRNPGanXdSQGCADyJ1AfDFc8URlou0S4IAHokhpRI5gFQB/SrOz3f9rPOR50ByBcGcFbbifrJzsUntGaqb5PSu9zYJOUKbbzjsOWzn8jXnywyxpp/N/wAnXDJ+rLlH2Rt5Iw9H7ulH61xc5wgNdJp1rUrShH4jQMK4l9LKZKh0rTgyr8Qxzx7a4vzqVOxX0K1NtLUlwY3TqGxI7sjHtrphG3Rztnb3p7gQ5HmFSsZUEoAQk9wzuaIttwXJUqO+AmQgatuSh3inaksNsDrpxiq635l39b7f2TDKkrI/EojA9wJ91WW07RLVF920xzQ8u4R4Z0uKKnCNQaQNSyO/AquicX2yVILCxKirHbIZKE+/kPbis6si0Wsn7s56p+FOxtFZ9QU0v7s76p+FKNvEY9QUJO6Y10a5IoBC6kf2Ln8v/NOLuo/2Lv8AKP61aZT/AHSffSynsbTQFLLmqkMqR0DuSMAkDHOiBMUEJR0DvVAGcCp7qQI5ATpGAfzogKHRpJSD2flUAAExX9y57hS9MI/sXPyo7pAP3E1wV57APKpAA9OUhlxYZcJSkqAxzwKGbnPamFpWp1LigCnAwQe7y51YTpC2UNIbOFOuBsKP7uxP6UO1iI8pIbStfRqcGlICtuY9tWXRDO3JIdQtISrIyk+Brx75YLk6OKbPbVNvqYMXpMIXpB6ytQ/IeeBXrkFYVbXJqyEmQVPK7AkYwPyArzX5VLazxGLHeY7qY6WSplLrrZKXRnIwM8ue5q+FqMtlZq0jy5NxkM3qR0nSuRy2AEqRkbZ3JO5IPf761Koc6HGiNFl5DKgFoOsgJ1Dszt3Vk7pbZdnuqVLYQ4kPhCVhWykkE5zsf+ivorhbS5YoKhggtAd/LaqeXg5STv2R2eP5KxQaS92eFzrfdhBVdpFtdXGS6U+kyRgLVg7NtjG3V5+6oodgmX+3Ku8S0SOhhYDwb2dQog5I7wPeMivo2Sw1IaU0+0h1tQwpC0hSVeYNZ6bw7OujH7ODke023VktQvrODuJwAPZWv6yjCox2cyTlO5S0Yv5K312ae9ag87KalRyrKhgpWg7A55nBUPJI7qJ+Ua7SW7rFipcKGYUcLPVylClZ658tqsLfZodu+UZDMJgJTHhLBJJKh1QCSe85FGN21i7cZXaJNb1NORWxscZGlOB8a5fJlKaTfbOjx+EJt1pHmD8C7WS3x+IXba1KbkL6rshGorPaQ2dgD2DwzitHYpEuQoXmJalQo5UEibARoUheBlDzQACkZOM42rdwuG5ljiqgQzGuFtPKLLz1R4E5FXsJoRojbSIzMUJH2TONCfLAFdUfL9HFx2cuXDc+SloBbuKJ0XpWklwhO60bjO2RXnd7nNDiaW5IdejttaQ4to4JGFEJHceqd/GvRJd00hwNlCUfVK1dvlWJlQrTJursgO9OuQ6kOtpdyh3Tg6SMbb45d/mK45pyjo68DUW5BbVxaflPMrWpr0RSXG3GicpRpBG/PIJO1admRInOMOrilSUtkP6hhJynce/fHZis/wAMMMyrzPuMphOEvg5X1tAJJAHkE9lbgLaktuNJCkDGkpKdJAPbitMcnxMMq9RnlWyJKUShme22NykO4SR4ZGce2rAyE2W2uqbgFliO2pwgHngZyTzJPea6UmW6hUboklYy2XwoaccicZznHZRs+Em4W+RCWohDzSmirtGRjNaSk32zMpLKZDcZUgR1rmPqKnnyQT6qe4Cu5tu9JZUFRFasHeoOG7oGG/2ZOUlq4R+q62Tuf8Q7weYPjVjc7zGgsqLrqUnHLNUaaeiy6KvhmXLMCXbXW1uGGrQlajuEKTlIPluPICrxp51thtCY61BKcZHI1XcPxHmbbKlyEFt6YouaTzSkDCQfj7au2ciOz6gqZdkLoGEl/tjLpGS9/DrosnNNmoJLPO1MTTAgiuVqwRigB7v9ioeA+NTZ+aT/AN7BUF0VqYWfAfGph9kj/vYKAbNcrcQ0grcWlCU7lSjgCusUPOjLktt9GUBbTiXEhf1VY7D7/figJD0MtkboeaVuCDkHyNc9AhkLcbQdZwSc5Kschk1zCjKjpdUvQFuuFxSUfVTsBge7Oe8mhU8S2Ncn0VN5tyn846MSUas93Op37EfkprsVS+CHGkOFIUsNukfupLnWHuPuobjuzruPyfuMxNPpEdAeZBHIp7PcTVjf2F2iM/JjhJiv5EhhScp6373h50rbb3pdsDbU75hSShTL7etSM805BGRirJuL5IhpSXFniExhM7h23PpfCpbzgC0HYpUMgjcgezfw3wK9Q+Sq8KuFlXEc+1iq596Ty/741kPlA+S25R7a4uJIbegtLQW2+RSrUAOrjtOM7n2cqk4D4jjMz4EhGWlBKYEtOjZefs1A4332yf6ZeVKUoqf5NPHUaeP8f+/c9gVvQ8yWiBEflLBKGG1OEdpwM4rtLmRqzt21m7/xlwqzb5LE66sOMOpUy4lolZIIwRkbDzquJOb0rKS9JFwKmTck3O/y2ltLlqIZQrsbwDkHuI0+6pLqf2XxDEugbK2zBdW6B29GnPPs2VXmXD3yqs8P3By2QZcyfayA3GalEKKAOwKG491S3v5ToXEN2agSrnLiWoAIUxFa0lzxLiiM+WkCujJ4E1112Vj5cb3+D2+NIRLjtSGyCh1IWnyNB3uX6FbXnge5PvIFBWTiTh96G1GgTW0tsoCEpcyCAB3nY+YOKOu8MXG3vRisJDqeqrng8wffiuTi00pF+SafFlSuM2GOlX1ghOyTWAs0Vbdvn391YDEVSy02R1nXVEEA9wB0n2Vf3G7ups8iFIQUTGUYWjv7B5g59ooGNw9KmQWfSJKItpW4XS1kFZPI4wPDG9WyRaajR0YppRbky+4aYCmrepQBVOQdaTtqAGU+4fGr9uUmOqM6FrXKcIbdaUok4wcjHZg0I20Ii49xUnS01hDLQ54/+gK44guP7PjshKtM6UhTi3SN2UdpHcdwBV8Sv0o5ckl9bDV3mJaUmOVGRJBKnQ2BgKO51HkPKqeb8oMlnrQ7OmekHrJZkjWB7sGqJplctaWuhBV9ZLKj1UD8SvxKNXDNmkoKFrkDb91DeE1o1BOqv7mbU2uTdDQOLuFOM5TcSfGXDuA6rbUxPRuZ7krB/LI8q0cbhm1Q3g+iLrdT9VTy1OEeWomsdxJwzGujBDzYKx9VwbKSfA1ZfJ5xHKmCRYbq4XJ8BIUh0832eQJ7yDsfMVM8arlApizW+M+zXyTlhz1T8Kdn7sz6gppH2DhHLSfhTsfdmfUFcx0nVMeVPkUjvUgsAnlXLowRQAug/A9/JSNyQTkoe/koCS4EmMvy/WiUn5pPkPhVbJmJdZUlKHcnvTUxnoSEp6N7YD9yoAXTnaqG98X27h6IJE0vArOlplKMuPK7kj9eQrAXDj/ie8PKbhrFra/u4rQeeQP8a1DSk+GBW2PDKe10TRp+JX3eIuJBw4HVItsVpL05KDgyFK+o0SP3QNyO3I7qOPCUBqGWUxWUtEY6MIGkDuxXl/SXi03wy/27KK5ukiU+EnpHEjGhWRjkBitZC4/usH5u+Qw6xy9KjoKSn1kciPEe6ut4JqK4M4k4SlLkWtgfetF4d4eeWXrfJjreiJc6xaUn67e/7pByB2YNWKojlgDVxjuFyOrqOMHYhJP7vfj31U2qQ3e+I/2lGCnIkFhbYdSNlurA2B7cJznzFad1SltxihPXYJI1DY5BBrmyal/s3x/SdTG2OILLIYZdBRJaUhK/wKxsSO8HB9leF2xT9qu0qI88Gm/SEuLYcxhterbn+FYUPZ416cuQ/abq8+ypQb1guoA6pzuQB7a89+VJcV7iyHKggFqWwVukDYkbHONwSEj2jPfULC8kXBe+1+S8cyxyU2r+T0S9NTrxwzKgwnQxKeQkBzJACCRkg+VYS5/JQxbtJi2525gJzlDyEL1H63VUlWfA5q54W4qQ9CEd5zo3oeUhStgUjmD41smrih5pIW0QrGRjlVceXJg9q+UVnGM3Xfwzyu08P/sWU3If4CuchDSeqp14L0Y7NKUj8wRXdwsLl6eEmNwNPZZUPqhzQDvz0qSQP9NaLiriDirhl96TCZNwtru4CkZUx3gnu7s+/v64V4j4l4mfZky2XbdbY5yQlKfpHcBtnHfviumfkzSU6/kovHjLT9iks3yTrkPJ6aJKs8YJOpxMoF3V2aUhI79849tb3h1idbLI1CuDiXJDKlp1jGFp1HCvDI3x2Zo9c/WSEoWNsk45VS3HiFqHGW6lJcWUlTYyBkfiz2DxrmzeW5K5nRh8ZR1EzvG92cfudvg27SuY46ncJCiWwdx5E1vGLWzHjRmXENuysBKlqGQDjJUBXlvyfMuu8fPSJzTi3A30qM4Onbb9MDuFevekkHZlfuFcuGXO5nT5MVjrGvYiejoacjqUS4vpUjUv28h2VheLHZU3jmTDQR0aGo4IP4eso+8mtbdb5EhusNvlQd1hQaSMrI8v61iOKrw0niZi8Nx5DLK2hHkFxI2IJ0nYnsP5V24JJTPPzfTZqrJb/RkKUs6nFqyT8Pyq7DYAqig3dtbSVoQ4oEZykZop68obayW3R4kY+NRx9kFO9s6uqm2mVKJArGIjtu8d2vUCGnWnEOYUUhYxnScdmw2q8nPRri2FKuAbQk509Es6j3Zx31Qwf2bK4macmzkejtMqSy5Hc36ZRHP8OADz76um1GSZVxi3Frs10yKmzTojlvXoZkL6F5gfVUCDuB2Ec8+FaVgj0dru0CqNi3x46+nWqdLfSgpaW8BhGRjIAAGcdtWaJgbaQjonTpSASE7VyI6WwulQnpw/uXv5aRnj+6e/lqSC49IP92in9I//ABo91Q0iakEdyeK4ysdXly86lVJEaN0rikpbQ3rUojkAMmhbh9zX7PjVH8o0tyFwFcnG1FKiwhvI7ApSUn8jUwjyko/IPMrtfF8S3td1kuLShxWhlI5tMbgJT3FWDk/1q9i/s5MT5mb0UdCNRjtM6VDz3JHuzWUMTK7bHbWElS1ICztgpQB+hr0KFED6rY+toZTLazp5LORuodvw3ru8pJel9ItBp012dW+0wbpDcaWy441q0raeUVb8+3/7FVFwsltTdEWZl+Y2lSNbgL6+haR4n28s1q+GSVtXBbhyszHM57N6AvENbEiY4hSXW5eNSFL0lG2CAcHIO/dWeLJxeujnyRU+yPh9n/xFbllXcm5EJ4lUXIKVNrP1kYPYefn51s2XCGWxnkK8e4plKlQ7c/FLjbvTFLYCsqSvGdKvDbFen2acJ9ohStQPStJUT49v51byIdZL7K4pJej4A77bpXpQehN9OmSvDzRI2IH1hnyG1eT8ZPdDxFb22mVrUAeoAe3UMHHLfb217A/e4rcxUT5xbjSekcUgEpaHie/woCZwlZuIsT0rWnphnWyrGdz+uaxUmotfY0STaf3PJ+ILJ+xbsEQpQU7oSt1AHMlOCFDtxjtq1sXHKI7rTF2W6h0pAYcVhCHU+ByB/p5juNa+b8mw1ByFMStQBCkyEbrHisb58SDihF/J4ze7U9DmpVDlJ5tnrtq7lY7/APEk+dRi8hyfDLHXyXy4Ir14pbOZfyhW+2NaxIUQfrJWRgA9oI39mDSt3yjwbm0lRacQjrBCgsELCeeAcEYG9ZRz5FJcFZUwwiWgA69Un6w7hsnT54NSW35I70pbZct8FlDZ1NOPyipSM5yCEghQIx2CtsmLBx9EtlcU5X60Xt+43YehpYZdRGYlIKm16+kW6nlkBOe3sJyd6seF+EZd0DM6/tdEwjQWIfadPJS+wd+kVZcM/J7b7CtD7xEqQgfNjBDTPqJJO+53Pf2Vq84yezxrgeNOVs6nm4qomCsK+i+U28h0lKn0hTSRyKEgg+3J5d1a693M2q1SZiRrcbThCT+8snCR7yKqbcbeLq7ObKnVSXFJakacI7MpBz4c8Yofi24ofR+x46VOylJElQTv0aUnIOO0kjYVpjwuNoxy5edMkt1v9Ga6V9IfmyFZdkL3Vy7O6rG6WmPdGXWZCdYcGFVVSLihm3xn4Lz8xx0ZGrTgnGcgDs5/1o2Lfo8u3+mqCmtGUutqHWQsc047/wCtXUfcybtfYw4ZuXBspcRLnpEVwH0cqO4V2JwOzx7Kik8UOF75xxRdB3QWljcdyccq0/SGfJTc1oYToJLaXE6i2lOxV+ecd9WLHEz7EC4SHR6SI5QGF7J6YrOE8uQJI37s91bqVVaszUE/pdGUtVhvl+kokstSILShhUyUnSQnubbOCfM7eJ5VcXjhKCJQ9CkqMlKQFtOo1dIrG3XAwFnc+PZirURL4/ETKavLqZJTqUjokhkH8ISRnHiTmprEY18Sbi80pqay90UhtCz0ZdQNlY7diCPZ3VWeST2+i8MaiV3DN5ea6SyyXlOgtKciuK5lIG6Ce3H6GtcwSI7e5+rWDv7H7J4zjSI7KdMlOsq1DqknCwB3EAnbtNbtnZhseFYSS00aWSaz3mmKz3n30wpjVSQqlSzvSoAa4H6Iv2fEVXcYWxV54SnwUJ1LcjZQO9ScKA/KrG4D6KrzHxqn4zuS7fYEoaVpelFEdHf1hvj2Zq0LUk0GeWwlNXNlhonS4ylSlqGcajgYGO3Ps51uYL3osFtD76o6frBTicLSRjB2Vtv2mql6x/seP08dhakJCQRnUtOOasjs5+WeyoUTIkyOoKCSlW3nXbkrJbSME3GlZfx5/wCwGy3JQsiSsrS7pOBsB1jjfz8aob3exLkFsLw2zlTis9vd+vu76dc930L0RtxTzSd0hZGAvHVG/ZnnWbnLcfktxLewp111KVttNJ3AIzv5Z5nYVy4byTeN6/4dUocY8ji2vuybvBgkqSkXAyHU+GEK/wD6IHvr1Hht9CeHIzqN20tqUnfsCjivPOHIhtzV2clt65UUFGpCuqDnHM9uQcd/Ot1YU+i8IxGirVoh7k9vVJrs8mqpHFD6mykCnrVw4uWxK1XG4OrW44oDPWJyMdwwBWwguRLRDYt/ToBjtpSrJ7e892T8axN0jiVZbbJdC0uNuNrbWnzCTnzSfyostpk2i8vqWvpPS1KBSrfq4IG/iSMVjPemXTrZtZVyjwsB5Z1lJUEJGTgcz5UKu+NhegMnVnGXHEpH5E0BItcl64MXGO+0FmOGHEPJJBTnORjkd9/Id1Z8Ldgm6KdU5otoCEdFkoKwlOFZOcHGB76zjBNdlnKS9jVS70iI2tS1MOdU6g2TkH2+yh4V2uDaofprQLMkudYEdQDdPZ3VV3KEIPCE25SHXHZHoS3ynOEJcUgknA58+3NDT1uMLtbalvgNRZD2FKBThLKiMe3HPepjjvoty+R7ZcbrP4TcvHSKMtx8vNbZIQFYPs57d21WXEt8cm8H9PbdpFxaDbac7o1Dr+4BXtqutb7MSyRcqUyFBYK1b5RvgIGeew7Nq5MePaWXJL4dXHjLceKEkBLKl4VjnuSrfbYZq7j6+vco5XEkVETEjWe3NOJbMFSApCEaTkAZz276s929BjUyblf2A43MmO9Cy6tQKQAQlKQO/Y++pZk5q4W+JdYqjrfktNuPacKcQCeqRjkN6AivtJs0YJ6R30eZ8/1SQ2Uq3PcD+dWV9kNXosuILW7DRbkRn1qRr6FbLiiULURsR3EkVVtypEeZObuEZ+MgSGWy2SDqwhQCgRsc4Tv4Vf8AEAMyfBjNnU0hZeedSfqDB048c1WcLNHii0TpM1CUCTJUGinOwQTpVvzO+T7arXp5NErszTd4fVDmzlLUA8/0bbSk5UgZwefZgDz3q84enRHuFJEOZIdjyHVgtuKaUW29GNO47NQPvqujWudJx9HVMZLqgFoSE75xk77DGeffW2Yt7lqhNMRi2hsICVtqAKVHtznnzNRlb6XZbFTRDD4juq4iWkWOa86RhK2AFsr8QvOMeePGoelk2BMW2PvFqTMWuZMcZP2ZVgJQk9uAPbp8ag4eef4fvzcPcQph0qR2IX2KH5DyPhVHxHc5N2vSuiKgyXy5qyAQhGQkDO2+CfJdZL1vj0a8eJo7g1LnS7Wue4yFIJSkhzClAnPdvtkdlbVjPQN556a8ktl/l3+S9HZKUIjy2S2VJwpYA0qI38c+6vXGSCy2RyKarNU6KIcmmNLkaaqFgrO9Kh/pv8Lt63/FIGb/AAv5n+lAPP8AuyvMfEVleOJTAnWCDIHzb7ilHHZpCTmtJLElTJDjWhORlRPjWF+UYPKvNhcUnQWekUjB57Df8qvjVyJXaNPCClM5WnStW5Gc4oG58MW2WC4WOidPNbStBPu2NGx1PnOGgNh2126t/GC2PfV8cnGVpmTjozNtsMSA6+grfWcoWCpQPI47vGoeBVoDVwaDbaVtynEggDVoCjgeQom+l4N5SVNArQhSknkkqGd+yqayKSm13RxKdDsaQotuDYoI5AHuPLFWnDllU29tGil/aa+KJrdBcmRL6ylfRPKkyEqOrcjUSnb25qzauCGuB0hbiUPoimMpPahYTpORzGOflUEmM5bLou6qaUhiSgCSEAno1YxqI7u/yrm4uxltKeujbK0LUXEBrA6VKRslahsrJ3Az3VdNt76MJpJa9yquDq2ovD9nVlb0l5tAUTlJSNOSO3IHP20VKUU2qU6hRShyWRhHJzr7dm2MnzxTWC13C5X/AP8AIrlF6JLKS1BYxjQk81Y7O3HmfCpbTHW9ZVBTrAbU444867klCQokJ5dhxWrSuym0uLNsFBOE9g2rFzVFbfEpSHSlTqtISerqCQnfv+r+Rq4kTZzZJRIivOJIC2ksqSN9x1idvdVYp2ILbc+nSht8uuObnJ0qOoHx2NYceKdml8mi54lWlPCkpCvqqYSj34H61l7x810Y0qQDbHyFFRIGrCQMn1vKtHOZky+H+hcYUVhptRTzJKdKsY9lU7DMu9LDfoq22URiOkdSU5WSMJwRy2yatB0Vmm2TrtQmG1xi5o6SG7pOScLIBCh7cVD+y512Ee1zIXo8RpxLj6gOq6B2Z5KyP07qOYgyItxF0mKaaRHjltCEqOkE41KPuA9tGIu7b7K3m+slKQsgghWDyOCM71Dm7tFuKqjOvuBdsnRcFtbFwWtOwx9sSPZvVk5B/Y02W+20tUOW70y0tIKy24frZA3wTvkA9tOthx6WqQ23boZXhalupW6tzHJWlOE925PZTvXiTbn46ZRakx5CghMplBQEqJ2CgSdj35qab6IU6In1vTUpTboiWW1YSt1SC2lsb7gEDJ3PZ21b21Vtitt22DIYV0CcdGlwFXeSR3k7+2s/dJkm43F+K581aoWPSlheC65zCB3gdvjXc92PerdEjlL0Va1h2KotBtYAOxBx3ePaKhx0Tfsho1yTw8qTBfGXGlktj8YJ6p8t/wAqOt7yIrzy7opp2W/gAPYUlI/Cgdn/ADVcUovqIPpp1yI6FFbqOqVEHmPPGcVzGtU64w3JBlLS08ghQSgHUAO8nbf4DuqZdfkpGO9hTMcpvaLc47rQs9K0rVkt4OSmnf4OuMp10tpjtBGyD0h6/f2bbVzBdSwi3OFpS5C3RlxXPPdy5YrXpckg7RlfzVlN1svj2Utl4KjWRTtwcKFyg0UICPqNjBz5nfnWpZH0Zr1RQjq5C2FpLGkFJGSrltXaFSg0gIZSUhIAOrnWLbbNgqmO4obXN7Y4/npapf8ADgf66gFnrV+I++lrV+I++mpVIIJ6iYysknlz8xWF+U9CRNsLyyoISp0Kx3aN/jW4nn6Mv2fGsd8qDYEK0yladDMjCwv6qkqTjB7uVaYnUgu0XcV4EEg5GE49wqd0kms3w/cEusJbBUUhsJSVcyEkpGf5a0CFaiN6RtbZOaPF0Vd2SAy6koCgpBBSRnNZLhBESDZptwmFakMvKdxkkZHcntPYK1t91IQVpzgKGrHaM71lbtHec4PdLCEaunS4ojkQCN8d3bWkJXJJFNLG7DY9wlXRl2VcZTltjqALaGSAvGO0kbn/ALtUKJ02xPsSXnWrhaH1hPpCm0hxkntJH/PnTLU0pENclAXFSnSrWB1SQcEg+2pXbDPEJy1wwyIEhZUl8KHUQo5xjmcZ2x4Vq6TMVtGiVcYrcjoFyWw4MdXPLPLPdmqK62uDAAjqmTkImLKURGMfOKJzz8P6UEXW4lvvTxdSpYeWNOcKJCyAT5AADsqxuilJvtrkLT1Exl6ieQJxz7uX5VEVvRElSJrVBttyBfbckyVtL6JfTO5UFJHJWOex/OoF3YSXJE1uBHcjwlpQnUjK3E5xqSeQx2DuqK0zeisd4mpbQ0pT69IQRzKEhJz37ipLRIZt7ES3KbCnXWknCRtk8ge3l21Mo7dkRei6ulyTHs0ieyoKSlkuJV2bjY1SOSpVphQZz01bykLLctCl6taScah4p8KjbcKeDpcR1xK1RVqYUpJyCnWCn/aQKIDAVBEUKT0r2ClDhHUySrPjz7qrSSJvZ3xO76WuNa23AOmIcUoDO2er+p9lVtzfZTcpa9JaW3BX0g1ZI0FJG3lyqeXJgW1Dc1fSOltaUFDYKlDTyCf8IxjxxmgeIHo6ZbjyVhbki3yVKURjOEowO7kKtjhbViU66DYkhlyRai81HQh5nrOJcOOqgkoPcM6TjwoVx5Vsh3DDYcjvSAGmlk5wvYBIx4g1ZB4WuNAhssZUvrdGhoLUsgDc5zsM5J8qIbsxkXRNwmKJS2rW0znICt+srxGTiqT7LR62U5jqutqjHCViVMBWrV1gCs59n9at7+QbvaU6clKnlADkBpA/UVV262KGlps/SbfLGltQCRp7N8ZORvk99Xl0aSxINzkEDoWilDYIJ378dpOPdVL3RpxKdCFxrqlAcK2nFuAFIzk7HfvwDyq2txcjWVUEgmSEqQ2DtrB2Ch4Zz7q6h2hZt0dDxCZSFdNrx9VZ5jy3xRYjzXAoKQ2nLZR9bbJO5H5c8cqtKd1ZnwpaKt2MU36021gkhGqS+T2IQMDyyoj3GtkhO1V1st3oqlPOK6SQ4lKVL8ByHxPnVmMVlNrpGkFoZ/HQL9U/CpGh9HaP+GopH3dfqn4VI0fozfq1mXH1YptWa5O9MaAMzS7K5zT5oAef92V7PjWd+UZht7hguOrUluO426rHbjbH51opx+jL9nxqv4ohouHDs+MsZSuMrI8hn9KvjdSRWXRguHdaIqFNBWIqlMOJPPGchQ8DWxivhzQQRXn9luTq2GXo5ZOE9G6Er1ZA2Bx2gYIzWmi3FKVlIUlKhzGoEHxBHOuqcbhovKTnkp9Fhf3Si3SnEnBSy4R/Lgfmait8dLMBpp0hQKQFasYJPZj9KCvktMmGqEtWzmgY5ZBJzn8tvjVfxG6tq72JpalJabUXcY2K0lI/IGuXBH5Iy60iaVETDZeZQkyLesdGoZyWe7bwo21oHDxZiuPOPwXiAy8v+zUf3T4Hsoh5bDdwmKkuH6WgDQQcLVy29hqD0d/9huQZCgVAltKjzI1AJPnW+2jCNJ7ILa2lDc4y2Wyhx5SlDH19RJ/Wj23oiQ0yhtLCtyApJ1KA55JJ29tBvtqRBWwOsoOp94WCfhRl2YbNxYccSCC0tIKhsDkGof3C6M1Cw3Z2IjYbDb9xdWoAdXQlekD4e6rl+HbVXL0r0khaFo1BQGNYTsAfI7jHdQVkxb3lmRgpS06WBp2VqdUrIHuqwi8OsvWdtqc0ky3GiVu46yFqHMHsI8O6rOTshRVFXNVGQq5RGlBtmShlxJHLKVaVH3Y91QPWt2ZdnG0O65DMRp1tahj94jTt2EA++jX7JcJLTSV9Z5lspW8/vq9vjjnVtbYDhlO3B5KUKdaQylCTkBKcnJ8cn8qcq9yaRVTLbKlhx91BaZYiOoZZOD84pJGdu4fGqi5Qn5lltDbZ1yA0428gDJIUjreW4rcJfjLc6ISGlLO2gKGfdVM7Is1luLikNOKfRs4pJKg1nHu51aE5IpKKO4UlE+bEU0pCyy2rpCP3SRy99XQTWfmcQPtXV63Wy3NSHksCT0hXpSpGM93OoZd+k3Ri1RIhdgSLgrDqtJC2gBvjPxNQ8cnscki5uENClokpdMd1PVLqQPq9xB5io5DMSK2m5z5ipLTRCmwE9QK7CEjmffVNxKmdZeG3WHZolOyJOltS89Rvmc+z2VXQJjFy4cnQ7s++3HjzEliWxv1SdlZPZ3+dSsVrkHlfRr3b2THU9GiPudHkuBadOhOCcn3VPwzc375FTP0tpjOp6gTzyDv+u9UvCsi53FN5iPyRcYKGdMWQG9PSZSRjuOfDlV9wXbl2vh2LFWwpgo1YQoYIGfHeqZFGKa9y8G20y6SnFdYpxzp81ym5HI+7r9U/Cu2jmM36tRyT8w56p+FPHOYjKu9NQDommJzTE0qkBdKoAJ/8KP5j/SmHp/8ACj+Y/wBKAU7aMr2fGnfQHGdCuSk4PliopKZZZUHWEoSe0qp1ql4GIu2Njr50QZ51/wCIXKxDoYSESUDWEubBWlRJI547TjPLPbTN2m9tNaQppKyjQSYidx2A9b863rqZKucf/dQi2pBO7H+6toTrsSm2ZGLYrlKLAmqQ30biVqKdtQ5kaezJHPJ2NX91s6btELZUG3kHU05jOk+PgaODT+fsP91TIbk9kb/dRyKbM6hy7R7d6PNhLeWhOOkZSlYPjuQRVlFgrkFl6SwWkowpLalaiVfiP9KsnmpBZWDH0ggjOrlXYRI0JxGJGkDOob1HMrw3YF+yo6pHpBQrXnONR0578d9EOw0PABxAUB30QlEkf+qf5xT4lfwv+8VDkWUQcRUgJAQnq/V25U/QeFT6ZX8L/vFLTKH/AK3+8VHIUDOsYaVt2GuGGsRG/FNFLTILasxgBg766dtl/wBGbSllCk6eZVjNORNHk/Dtun3t1DbdtTHQxLC13LIyoDHVGMHl8ank3WPGt/ENtdSo3WTK0JZSklbmcaf1r0W3WT9lMrZixglC1lw6nSrc+fZsKn9BX03TehsF0bdJtq9+M10vyVfWjBYXRgURb5bLwERrY9JcVAaj9LyaSrSNWVe/3VYDgeUmBBVFlMxLjGdW9r6PUjKzlQH9a2XQyh/YoP8AqpBMof8Arp/mqj8h+xZYUuzMx+D0MPRZM2W5LfDxcWFDqFR7geQGPbmtCLJAQ++6IjWt8BLuU7LA7COVdPpf+bLjSUgLGOtzPdUqnJpUcxAP/wBgrKWWT7ZpGCRJHjtRWktMNIabTyQhIAHsFSgUOlcw/wDqp/8AkH9KWuaP/VT/APIP6Vm2XCCMGmofpJ38Kj/5P+KcKnfwyP5/+KiwdyR9Hc9U/ClFOYMf1BTSGJvohUplAyCFDX9UY58qjb9JQw0htpJQlIAJPOlgnpGoNUz+5T/NTFU3+4T/ADUsFhqNPqIpsUqkEUwkxl+z41NnCU+QqCWcR1ez41Od0p8hQEak5qNTVTcqVLBAGqlSgCuqQ50IoilD6OvPcaka+yR6oriV93c9U1Ij7Fv1RQkelSzSoBj4UsZ7TT09AQyBhlfqn4Uo+TGax+GnkfYr8jSjnEZr1aA6pqRNKgFTHNLO9OCKAFnc44O/zqf1olZ6xoWb9eP/AJo+Bopf1j50A2TSJ8aYmmoBwfGlrKTlJIIrnNKgJZMxZhrwcLwckVC2o9A2c7kVHJP0dz1TXTX3dv1agHWaRNc0jUgLzilsaY1zq25UBHM2jq9nxqf91PkKGlqzHUPL40UdkI8hQHPOlvTFWDSLmOyoA9IU2rwpaqAjln6M56pqRvdlv1ail/d3PEGpWz8y35CgOqVclWOylq8KA6zXJNIntxTBWeypBw+fmV+qfhTs7xmvVFM+ctLGP3T8Kdk/RWT/AIRUAc02aWrPZXOrepB1SrnV4UtVADzT143+aPgaKcPWNCysKWwe50fA0Q4esagDUs02qmKvCpA9MTXOvflSKtqA4kn6O56prtv7u16tRyDmOv1TUido7Xq1AGJpjSzSJ2qQf//Z";
 
-/* ===================== STATO CONFIGURAZIONE ===================== */
 function cfgOk(v){ return v && !v.startsWith("INCOLLA"); }
 const HAS_APPS_SCRIPT = cfgOk(CONFIG.APPS_SCRIPT_URL);
 const HAS_GOOGLE_KEY  = cfgOk(CONFIG.GOOGLE_API_KEY);
-const HAS_CALENDAR    = cfgOk(CONFIG.GOOGLE_CALENDAR_ID);
 
-function showAlert(id, type, html){
-  const el = document.getElementById(id);
-  if(!el) return;
-  el.className = "alert-box "+type;
-  el.innerHTML = html;
-}
-function hideAlert(id){
-  const el = document.getElementById(id);
-  if(el) el.classList.add("hidden");
-}
-function setWarnDot(navId, show){
-  const el = document.getElementById(navId);
-  if(el) el.style.display = show ? "inline-block" : "none";
-}
+document.getElementById("logoImg").src = "data:image/jpeg;base64," + LOGO_B64;
 
-/* ===================== NAVIGAZIONE ===================== */
+function showAlert(id, type, html){ const el=document.getElementById(id); if(!el)return; el.className="alert-box "+type; el.innerHTML=html; }
+function hideAlert(id){ const el=document.getElementById(id); if(el) el.classList.add("hidden"); }
+function setWarnDot(navId, show){ const el=document.getElementById(navId); if(el) el.style.display = show?"inline-block":"none"; }
+function toggleForm(id){ const el=document.getElementById(id); el.style.display = el.style.display==="none" ? "block" : "none"; }
+function goToPage(page){
+  document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelector(`.nav-item[data-page="${page}"]`).classList.add("active");
+  document.getElementById("page-"+page).classList.add("active");
+}
 document.querySelectorAll(".nav-item").forEach(item=>{
-  item.addEventListener("click", ()=>{
-    document.querySelectorAll(".nav-item").forEach(i=>i.classList.remove("active"));
-    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-    item.classList.add("active");
-    document.getElementById("page-"+item.dataset.page).classList.add("active");
-  });
+  item.addEventListener("click", ()=>goToPage(item.dataset.page));
 });
 
-/* ===================== HELPERS GENERICI ===================== */
-function csvUrl(tabName){
-  return `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`;
-}
+function csvUrl(tabName){ return `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`; }
 async function fetchTab(tabName){
   const res = await fetch(csvUrl(tabName));
   if(!res.ok) throw new Error("HTTP "+res.status);
   const text = await res.text();
-  if(text.trim().startsWith("<")) throw new Error("Il foglio ha risposto con una pagina HTML invece che CSV — probabile problema di condivisione");
-  const parsed = Papa.parse(text, {header:true, skipEmptyLines:true});
-  return parsed.data;
+  if(text.trim().startsWith("<")) throw new Error("Risposta HTML invece di CSV — problema di condivisione o nome tab");
+  return Papa.parse(text, {header:true, skipEmptyLines:true}).data;
 }
-function extractYoutubeId(url){
-  if(!url) return null;
-  const m = url.match(/(?:v=|youtu\.be\/|shorts\/)([a-zA-Z0-9_-]{11})/);
-  return m ? m[1] : null;
+function extractYoutubeId(url){ if(!url) return null; const m=url.match(/(?:v=|youtu\.be\/|shorts\/)([a-zA-Z0-9_-]{11})/); return m?m[1]:null; }
+function fmtNum(n){ if(n===null||n===undefined||isNaN(n)) return "—"; return Number(n).toLocaleString("it-IT"); }
+function badgeClass(stato){
+  const s=(stato||"").toLowerCase();
+  if(s.includes("pubblicat")||s.includes("registrat")||s.includes("confermat")) return "b-blue";
+  if(s.includes("chiamare")||s.includes("registrare")||s.includes("idea")) return "b-grey";
+  if(s.includes("annullat")||s.includes("rotto")) return "b-red";
+  if(s.includes("in registrazione")||s.includes("montaggio")) return "b-amber";
+  return "b-purple";
 }
-function fmtNum(n){
-  if(n===null||n===undefined||isNaN(n)) return "—";
-  return Number(n).toLocaleString("it-IT");
+async function callAppsScript(action, data){
+  if(!HAS_APPS_SCRIPT) throw new Error("Apps Script non configurato");
+  const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+    method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body: JSON.stringify({action, data})
+  });
+  const json = await res.json();
+  if(!json.ok) throw new Error(json.error || "Errore sconosciuto");
+  return json.result;
 }
-function badgeClass(stato){ return stato ? "stato-"+stato.toLowerCase().replace(/\s+/g,"") : ""; }
+async function callAppsScriptGet(params){
+  if(!HAS_APPS_SCRIPT) throw new Error("Apps Script non configurato");
+  const url = CONFIG.APPS_SCRIPT_URL + "?" + new URLSearchParams(params).toString();
+  const res = await fetch(url);
+  const json = await res.json();
+  if(!json.ok) throw new Error(json.error || "Errore sconosciuto");
+  return json;
+}
 
-/* ===================== EPISODI / PALINSESTO ===================== */
 let palinsestoData = [];
+function getEpisodeEventInfo(codPuntata){
+  return calendarEvents.filter(ev => (ev.descrizione||"").includes("[EP:"+codPuntata+"]"));
+}
+function computeEpisodeStato(row){
+  const cod = row["Cod_puntata"];
+  const evs = getEpisodeEventInfo(cod);
+  const recEvs = evs.filter(ev => (ev.titolo||"").toLowerCase().includes(CONFIG.ON_AIR_KEYWORD));
+  if(!recEvs.length) return {stato:"Da registrare", data:null};
+  const cancelled = recEvs.filter(ev => (ev.titolo||"").toUpperCase().startsWith("ANNULLATA"));
+  const active = recEvs.filter(ev => !(ev.titolo||"").toUpperCase().startsWith("ANNULLATA"));
+  if(!active.length) return {stato:"Annullata", data: new Date(cancelled[0].inizio)};
+  const now = new Date();
+  const future = active.filter(ev => new Date(ev.inizio) > now);
+  const ongoing = active.filter(ev => new Date(ev.inizio) <= now && new Date(ev.fine) >= now);
+  const past = active.filter(ev => new Date(ev.fine) < now);
+  if(ongoing.length) return {stato:"In registrazione", data:new Date(ongoing[0].inizio)};
+  if(future.length) return {stato:"Da registrare", data:new Date(future.sort((a,b)=>new Date(a.inizio)-new Date(b.inizio))[0].inizio)};
+  if(past.length) return {stato:"Registrata", data:new Date(past[0].inizio)};
+  return {stato:"Da registrare", data:null};
+}
+
 async function loadPalinsesto(){
   hideAlert("alertEpisodi"); setWarnDot("warnEpisodi", false);
   try{
     palinsestoData = await fetchTab(CONFIG.TABS.palinsesto);
-
     document.getElementById("kpiEpisodiTotali").textContent = fmtNum(palinsestoData.length);
-    const pubblicati = palinsestoData.filter(r => (r["Stato"]||"").toLowerCase()==="pubblicato");
-    document.getElementById("kpiPubblicati").textContent = fmtNum(pubblicati.length);
 
     let videoIds = palinsestoData.map(r=>extractYoutubeId(r["Link"]||r["Link intervista"])).filter(Boolean);
     let stats = {};
     if(HAS_GOOGLE_KEY && videoIds.length) stats = await fetchVideoStats(videoIds);
 
-    const tbody = document.getElementById("episodiBody");
-    tbody.innerHTML = palinsestoData.length ? palinsestoData.map(r=>{
-      const id = extractYoutubeId(r["Link"]||r["Link intervista"]);
-      const s = id ? stats[id] : null;
-      const stato = r["Stato"] || "—";
-      return `<tr>
-        <td>${r["Cod_puntata"]||"—"}</td>
-        <td>${r["Titolo"]||"—"}</td>
-        <td>${r["Ospiti esterni"]||"—"}</td>
-        <td><span class="badge ${badgeClass(stato)}">${stato}</span></td>
-        <td>${r["Data pubblicazione"]||"—"}</td>
-        <td>${s ? fmtNum(s.viewCount) : "—"}</td>
-        <td>${s ? fmtNum(s.likeCount) : "—"}</td>
-      </tr>`;
-    }).join("") : `<tr><td colspan="7" class="empty-state">Nessun episodio in Palinsesto</td></tr>`;
+    renderEpisodiTable(stats);
   }catch(e){
     console.error('Errore tab "'+CONFIG.TABS.palinsesto+'":', e);
-    showAlert("alertEpisodi","error",`⚠️ Impossibile leggere la tab "${CONFIG.TABS.palinsesto}": ${e.message}. Verifica condivisione del foglio e nome tab.`);
+    showAlert("alertEpisodi","error",`⚠️ Impossibile leggere la tab "${CONFIG.TABS.palinsesto}": ${e.message}`);
     setWarnDot("warnEpisodi", true);
     document.getElementById("episodiBody").innerHTML = `<tr><td colspan="7" class="empty-state">Dati non disponibili</td></tr>`;
     document.getElementById("kpiEpisodiTotali").textContent = "—";
-    document.getElementById("kpiPubblicati").textContent = "—";
     throw e;
   }
 }
+function renderEpisodiTable(stats){
+  stats = stats || {};
+  const tbody = document.getElementById("episodiBody");
+  tbody.innerHTML = palinsestoData.length ? palinsestoData.map(r=>{
+    const id = extractYoutubeId(r["Link"]||r["Link intervista"]);
+    const s = id ? stats[id] : null;
+    const info = computeEpisodeStato(r);
+    const cod = r["Cod_puntata"];
+    const codEsc = (cod||"").replace(/'/g,"\\'");
+    const dataTxt = info.data ? info.data.toLocaleDateString("it-IT",{day:"2-digit",month:"short",year:"numeric"}) + (info.stato==="In registrazione"||info.stato==="Da registrare" ? " "+info.data.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"}) : "") : "—";
+    return `<tr>
+      <td>${cod||"—"}</td>
+      <td>${r["Titolo"]||"—"}</td>
+      <td>${r["Ospiti esterni"]||"—"}</td>
+      <td><span class="badge ${badgeClass(info.stato)}">${info.stato}</span><div style="font-size:10px;color:var(--text-muted);margin-top:2px">${dataTxt}</div></td>
+      <td>${r["Data pubblicazione"]||"—"}</td>
+      <td>${s ? fmtNum(s.viewCount) : "—"}</td>
+      <td><input class="note-input" value="${(r["Note"]||"").replace(/"/g,"&quot;")}" onchange="saveEpisodeNote('${codEsc}', this.value)" placeholder="Note..."></td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="7" class="empty-state">Nessun episodio in Palinsesto</td></tr>`;
+}
+async function saveEpisodeNote(cod, note){
+  try{ await callAppsScript("updateEpisodeNote", {codPuntata:cod, note}); }
+  catch(e){ alert("Errore salvataggio nota: "+e.message); }
+}
+async function addEpisode(){
+  const data = {
+    titolo: document.getElementById("epTitolo").value.trim(),
+    ospitiEsterni: document.getElementById("epOspiti").value.trim(),
+    conduttore: document.getElementById("epConduttore").value.trim(),
+    cohost: document.getElementById("epCohost").value.trim(),
+    dataPubblicazione: document.getElementById("epDataPubb").value
+  };
+  try{
+    await callAppsScript("addEpisode", data);
+    ["epTitolo","epOspiti","epConduttore","epCohost","epDataPubb"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("formEpisodio").style.display="none";
+    await loadPalinsesto();
+  }catch(e){ alert("Errore: "+e.message); }
+}
 
-/* ===================== YOUTUBE ===================== */
 async function fetchVideoStats(ids){
   let all = {};
   for(let i=0;i<ids.length;i+=50){
     const chunk = ids.slice(i,i+50);
     const url = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${chunk.join(",")}&key=${CONFIG.GOOGLE_API_KEY}`;
-    try{
-      const res = await fetch(url);
-      const data = await res.json();
-      (data.items||[]).forEach(it=>{ all[it.id]=it.statistics; });
-    }catch(e){ console.warn("Errore YouTube videos:", e); }
+    try{ const res=await fetch(url); const data=await res.json(); (data.items||[]).forEach(it=>{all[it.id]=it.statistics;}); }
+    catch(e){ console.warn("Errore YouTube videos:", e); }
   }
   return all;
 }
 async function loadChannelKpi(){
   hideAlert("alertYoutube"); setWarnDot("warnYoutube", false);
   if(!HAS_GOOGLE_KEY){
-    showAlert("alertYoutube","warn",`⚠️ Chiave Google/YouTube non configurata — questa sezione resta vuota finché non imposti <code>GOOGLE_API_KEY</code> nel file HTML (vedi guida setup).`);
-    setWarnDot("warnYoutube", true);
-    return;
+    showAlert("alertYoutube","warn",`⚠️ Chiave Google/YouTube non configurata — imposta <code>GOOGLE_API_KEY</code> nel file HTML.`);
+    setWarnDot("warnYoutube", true); return;
   }
   try{
     const url = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&forHandle=${CONFIG.YOUTUBE_HANDLE}&key=${CONFIG.GOOGLE_API_KEY}`;
-    const res = await fetch(url);
-    const data = await res.json();
+    const res = await fetch(url); const data = await res.json();
     if(data.error) throw new Error(data.error.message);
     const ch = data.items && data.items[0];
     if(!ch) throw new Error("Canale non trovato per handle @"+CONFIG.YOUTUBE_HANDLE);
@@ -379,15 +548,15 @@ async function loadChannelKpi(){
 
     let videoIds = palinsestoData.map(r=>extractYoutubeId(r["Link"]||r["Link intervista"])).filter(Boolean);
     const stats = await fetchVideoStats(videoIds);
+    renderEpisodiTable(stats);
     const rows = palinsestoData.map(r=>{
       const id = extractYoutubeId(r["Link"]||r["Link intervista"]);
       const s = id ? stats[id] : null;
       return {titolo: r["Titolo"]||"—", views: s?parseInt(s.viewCount):-1, like: s?s.likeCount:0, comm: s?s.commentCount:0};
     }).filter(r=>r.views>=0).sort((a,b)=>b.views-a.views).slice(0,10);
-
     document.getElementById("topVideosBody").innerHTML = rows.length ? rows.map((r,i)=>`
       <tr><td>${i+1}</td><td>${r.titolo}</td><td>${fmtNum(r.views)}</td><td>${fmtNum(r.like)}</td><td>${fmtNum(r.comm)}</td></tr>
-    `).join("") : `<tr><td colspan="5" class="empty-state">Nessun video con link valido in Palinsesto</td></tr>`;
+    `).join("") : `<tr><td colspan="5" class="empty-state">Nessun video con link valido</td></tr>`;
   }catch(e){
     console.error("Errore YouTube:", e);
     showAlert("alertYoutube","warn",`⚠️ Errore YouTube API: ${e.message}`);
@@ -395,151 +564,280 @@ async function loadChannelKpi(){
   }
 }
 
-/* ===================== ATTREZZATURA ===================== */
+let attrezzaturaData = [];
 async function loadAttrezzatura(){
   hideAlert("alertAttrezzatura"); setWarnDot("warnAttrezzatura", false);
-  let data;
   try{
-    data = await fetchTab(CONFIG.TABS.inventario);
+    attrezzaturaData = await fetchTab(CONFIG.TABS.inventario);
   }catch(e){
     console.error('Errore tab "'+CONFIG.TABS.inventario+'":', e);
     showAlert("alertAttrezzatura","error",`⚠️ Impossibile leggere la tab "${CONFIG.TABS.inventario}": ${e.message}`);
     setWarnDot("warnAttrezzatura", true);
-    document.getElementById("attrezzaturaBody").innerHTML = `<tr><td colspan="5" class="empty-state">Dati non disponibili</td></tr>`;
+    document.getElementById("attrezzaturaBody").innerHTML = `<tr><td colspan="6" class="empty-state">Dati non disponibili</td></tr>`;
     throw e;
   }
   const tbody = document.getElementById("attrezzaturaBody");
-  if(!data.length){
-    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Tab vuota</td></tr>`;
-    return;
-  }
-  let valoreTot = 0, daSostituire = 0;
-  const proprietari = new Set();
-  data.forEach(r=>{
-    const costo = parseFloat((r["Costo"]||"0").toString().replace(",","."));
-    if(!isNaN(costo)) valoreTot += costo;
-    const ds = (r["Da sostituire"]||"").toLowerCase();
+  if(!attrezzaturaData.length){ tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Tab vuota</td></tr>`; return; }
+  let valoreTot=0, daSostituire=0; const proprietari=new Set();
+  attrezzaturaData.forEach(r=>{
+    const costo=parseFloat((r["Costo"]||"0").toString().replace(",","."));
+    if(!isNaN(costo)) valoreTot+=costo;
+    const ds=(r["Da sostituire"]||"").toLowerCase();
     if(ds==="si"||ds==="sì"||ds==="true") daSostituire++;
     if(r["Proprietario"]) proprietari.add(r["Proprietario"]);
   });
   document.getElementById("attrValoreTot").textContent = "€ "+fmtNum(Math.round(valoreTot));
   document.getElementById("attrDaSostituire").textContent = fmtNum(daSostituire);
-  document.getElementById("attrTotale").textContent = fmtNum(data.length);
+  document.getElementById("attrTotale").textContent = fmtNum(attrezzaturaData.length);
   document.getElementById("attrProprietari").textContent = fmtNum(proprietari.size);
 
-  tbody.innerHTML = data.map(r=>`
-    <tr><td>${r["Nome"]||"—"}</td><td>${r["Categoria"]||"—"}</td><td>${r["Proprietario"]||"—"}</td>
-    <td>${r["Costo"]?"€ "+r["Costo"]:"—"}</td><td><span class="badge">${r["Stato"]||"—"}</span></td></tr>`).join("");
+  tbody.innerHTML = attrezzaturaData.map((r,i)=>`
+    <tr>
+      <td><input class="note-input" value="${(r["Nome"]||"").replace(/"/g,"&quot;")}" onchange="saveEquipmentField(${i},'Nome',this.value)"></td>
+      <td><input class="note-input" value="${(r["Categoria"]||"").replace(/"/g,"&quot;")}" onchange="saveEquipmentField(${i},'Categoria',this.value)"></td>
+      <td><input class="note-input" value="${(r["Proprietario"]||"").replace(/"/g,"&quot;")}" onchange="saveEquipmentField(${i},'Proprietario',this.value)"></td>
+      <td><input class="note-input" style="width:70px" value="${r["Costo"]||""}" onchange="saveEquipmentField(${i},'Costo',this.value)"></td>
+      <td><span class="badge b-grey">${r["Stato"]||"—"}</span></td>
+      <td><button class="icon-btn" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="alert('Modifica direttamente i campi nella riga')">✎</button></td>
+    </tr>`).join("");
+}
+async function saveEquipmentField(i, campo, valore){
+  const row = attrezzaturaData[i];
+  try{
+    await callAppsScript("updateEquipment", {nomeOriginale: row["Nome"], [campo]: valore});
+    row[campo] = valore;
+  }catch(e){ alert("Errore salvataggio: "+e.message); }
+}
+async function addEquipment(){
+  const data = {
+    nome: document.getElementById("atNome").value.trim(),
+    categoria: document.getElementById("atCategoria").value.trim(),
+    proprietario: document.getElementById("atProprietario").value.trim(),
+    costo: document.getElementById("atCosto").value,
+    stato: document.getElementById("atStato").value,
+    daSostituire: document.getElementById("atDaSostituire").value
+  };
+  if(!data.nome){ alert("Il nome è obbligatorio"); return; }
+  try{
+    await callAppsScript("addEquipment", data);
+    ["atNome","atCategoria","atProprietario","atCosto"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("formAttrezzatura").style.display="none";
+    await loadAttrezzatura();
+  }catch(e){ alert("Errore: "+e.message); }
 }
 
-/* ===================== CALENDARIO (Google Calendar) ===================== */
 let calendarEvents = [];
+let weekOffset = 0;
 
-function renderCalendarEmbed(){
-  const wrap = document.getElementById("calEmbedWrap");
-  if(!HAS_CALENDAR){
-    wrap.innerHTML = `<div class="empty-state" style="padding:60px 20px">Calendario non configurato — imposta <code>GOOGLE_CALENDAR_ID</code> nel file HTML</div>`;
-    return;
+function populateEpisodeDropdown(){
+  const sel = document.getElementById("evEpisodio");
+  const current = sel.value;
+  sel.innerHTML = `<option value="">— seleziona puntata —</option>` +
+    palinsestoData.map(r=>`<option value="${r["Cod_puntata"]}">${r["Cod_puntata"]} — ${r["Titolo"]||"(senza titolo)"}</option>`).join("") +
+    `<option value="__new__">+ Nuova puntata...</option>`;
+  sel.value = current || "";
+}
+function onEventTypeChange(){
+  const tipo = document.getElementById("evTipo").value;
+  const wrap = document.getElementById("evEpisodioWrap");
+  if(tipo === "Registrazione"){
+    populateEpisodeDropdown();
+    wrap.style.display = "grid";
+  } else {
+    wrap.style.display = "none";
   }
-  const src = `https://calendar.google.com/calendar/embed?src=${encodeURIComponent(CONFIG.GOOGLE_CALENDAR_ID)}&ctz=Europe%2FRome&mode=AGENDA&showTitle=0&showPrint=0&showCalendars=0`;
-  wrap.innerHTML = `<iframe src="${src}"></iframe>`;
+}
+function onEpisodeSelectChange(){
+  const val = document.getElementById("evEpisodio").value;
+  document.getElementById("evNuovaPuntataWrap").style.display = val === "__new__" ? "flex" : "none";
 }
 
-function openNewEventWindow(){
-  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Nuova+attività+Ultimo+Shampoo`
-    + (HAS_CALENDAR ? `&src=${encodeURIComponent(CONFIG.GOOGLE_CALENDAR_ID)}` : "");
-  window.open(url, "_blank");
+async function addCalendarEventFromForm(){
+  const data = document.getElementById("evData").value;
+  if(!data){ alert("La data è obbligatoria"); return; }
+  const oraInizio = document.getElementById("evOraInizio").value;
+  const oraFine = document.getElementById("evOraFine").value;
+  const tipo = document.getElementById("evTipo").value;
+  const note = document.getElementById("evNote").value.trim();
+
+  let codPuntata = "", titoloExtra = "";
+  if(tipo === "Registrazione"){
+    const epSel = document.getElementById("evEpisodio").value;
+    if(epSel === "__new__"){
+      const titolo = document.getElementById("evNuovoTitolo").value.trim();
+      try{
+        const result = await callAppsScript("addEpisode", {titolo});
+        codPuntata = result.codPuntata;
+      }catch(e){ alert("Errore creazione puntata: "+e.message); return; }
+    } else if(epSel){
+      codPuntata = epSel;
+      const ep = palinsestoData.find(r=>r["Cod_puntata"]===epSel);
+      titoloExtra = ep ? ep["Titolo"] : "";
+    }
+  }
+
+  try{
+    await callAppsScript("addCalendarEvent", { data, oraInizio, oraFine, tipo, codPuntata, titoloExtra, note });
+    ["evData","evOraInizio","evOraFine","evNote","evNuovoTitolo"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("evTipo").value = "Altro";
+    onEventTypeChange();
+    document.getElementById("formEvento").style.display="none";
+    await loadCalendario();
+    await loadPalinsesto();
+  }catch(e){ alert("Errore salvataggio evento: "+e.message); }
 }
+
+async function cancelEvent(eventId){
+  if(!confirm("Segnare questo evento come annullato?")) return;
+  try{
+    await callAppsScript("cancelCalendarEvent", {eventId});
+    await loadCalendario();
+    await loadPalinsesto();
+  }catch(e){ alert("Errore: "+e.message); }
+}
+
+function fmtWhen(ev){
+  const d = new Date(ev.inizio);
+  return ev.tuttoIlGiorno
+    ? d.toLocaleDateString("it-IT",{day:"2-digit",month:"short"}) + " (tutto il giorno)"
+    : d.toLocaleString("it-IT",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+}
+function isRecEvent(ev){ return (ev.titolo||"").toLowerCase().includes(CONFIG.ON_AIR_KEYWORD); }
+function isCancelled(ev){ return (ev.titolo||"").toUpperCase().startsWith("ANNULLATA"); }
 
 async function loadCalendario(){
   hideAlert("alertCalendario"); setWarnDot("warnCalendario", false);
-  if(!HAS_CALENDAR || !HAS_GOOGLE_KEY){
-    const msg = `⚠️ Calendario non configurato — imposta <code>GOOGLE_CALENDAR_ID</code>${!HAS_GOOGLE_KEY?' e <code>GOOGLE_API_KEY</code>':''} nel file HTML. Il calendario deve inoltre essere condiviso come "pubblico" o almeno "chiunque abbia il link".`;
-    showAlert("alertCalendario","warn", msg);
+  if(!HAS_APPS_SCRIPT){
+    showAlert("alertCalendario","warn",`⚠️ Calendario non configurato — imposta <code>APPS_SCRIPT_URL</code> nel file HTML (il calendario si legge e scrive tramite Apps Script, vedi guida setup).`);
     setWarnDot("warnCalendario", true);
-    document.getElementById("calendarioBody").innerHTML = `<tr><td colspan="3" class="empty-state">Calendario non configurato</td></tr>`;
+    document.getElementById("calendarioBody").innerHTML = `<tr><td colspan="4" class="empty-state">Calendario non configurato</td></tr>`;
     document.getElementById("homeCalendarBody").innerHTML = `<tr><td colspan="2" class="empty-state">Calendario non configurato</td></tr>`;
-    setOnAir(false, "Calendario non configurato");
-    renderCalendarEmbed();
+    setOnAir(false, "Calendario non configurato", "");
+    renderWeekGrid(); renderHighlights();
     return;
   }
-
-  renderCalendarEmbed();
-
   try{
     const now = new Date();
-    const timeMin = new Date(now); timeMin.setHours(0,0,0,0);
-    const timeMax = new Date(now); timeMax.setDate(timeMax.getDate()+30);
-    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(CONFIG.GOOGLE_CALENDAR_ID)}/events`
-      + `?key=${CONFIG.GOOGLE_API_KEY}&timeMin=${timeMin.toISOString()}&timeMax=${timeMax.toISOString()}`
-      + `&singleEvents=true&orderBy=startTime&maxResults=15`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if(data.error) throw new Error(data.error.message);
-    calendarEvents = data.items || [];
+    const timeMin = new Date(now); timeMin.setDate(timeMin.getDate()-7);
+    const timeMax = new Date(now); timeMax.setDate(timeMax.getDate()+45);
+    const resp = await callAppsScriptGet({action:"getEvents", timeMin: timeMin.toISOString(), timeMax: timeMax.toISOString()});
+    calendarEvents = resp.events || [];
 
-    const fmtWhen = (ev)=>{
-      const start = ev.start.dateTime || ev.start.date;
-      const d = new Date(start);
-      return ev.start.dateTime
-        ? d.toLocaleString("it-IT",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"})
-        : d.toLocaleDateString("it-IT",{day:"2-digit",month:"short"}) + " (tutto il giorno)";
-    };
-    const isRec = (ev)=> (ev.summary||"").toLowerCase().includes(CONFIG.ON_AIR_KEYWORD.toLowerCase());
+    const future = calendarEvents.filter(ev=>new Date(ev.inizio) >= now && !isCancelled(ev)).sort((a,b)=>new Date(a.inizio)-new Date(b.inizio));
 
-    document.getElementById("calendarioBody").innerHTML = calendarEvents.length ? calendarEvents.map(ev=>`
-      <tr><td>${fmtWhen(ev)}</td><td>${ev.summary||"(senza titolo)"}</td>
-      <td>${isRec(ev) ? '<span class="badge stato-registrato">Registrazione</span>' : '<span class="badge">Altro</span>'}</td></tr>
-    `).join("") : `<tr><td colspan="3" class="empty-state">Nessun evento nei prossimi 30 giorni</td></tr>`;
+    document.getElementById("calendarioBody").innerHTML = future.length ? future.slice(0,20).map(ev=>`
+      <tr><td>${fmtWhen(ev)}</td><td>${ev.titolo||"(senza titolo)"}</td>
+      <td>${isRecEvent(ev) ? '<span class="badge b-amber">Registrazione</span>' : '<span class="badge b-grey">Altro</span>'}</td>
+      <td><button class="icon-btn" onclick="cancelEvent('${ev.id}')">Annulla</button></td></tr>
+    `).join("") : `<tr><td colspan="4" class="empty-state">Nessun evento nei prossimi 45 giorni</td></tr>`;
 
-    document.getElementById("homeCalendarBody").innerHTML = calendarEvents.slice(0,5).length ? calendarEvents.slice(0,5).map(ev=>`
-      <tr><td>${fmtWhen(ev)}</td><td>${ev.summary||"(senza titolo)"}</td></tr>
+    document.getElementById("homeCalendarBody").innerHTML = future.slice(0,5).length ? future.slice(0,5).map(ev=>`
+      <tr><td>${fmtWhen(ev)}</td><td>${ev.titolo}</td></tr>
     `).join("") : `<tr><td colspan="2" class="empty-state">Nessun evento in programma</td></tr>`;
 
-    checkOnAirToday();
-
+    checkOnAirAndNext();
+    renderWeekGrid();
+    renderHighlights();
   }catch(e){
     console.error("Errore Google Calendar:", e);
-    showAlert("alertCalendario","warn",`⚠️ Errore Google Calendar: ${e.message}. Verifica CALENDAR_ID e che il calendario sia condiviso pubblicamente (almeno "visualizza disponibilità" per l'API key).`);
+    showAlert("alertCalendario","warn",`⚠️ Errore calendario: ${e.message}. Verifica CALENDAR_ID nell'Apps Script e che l'App Web sia distribuita correttamente.`);
     setWarnDot("warnCalendario", true);
-    document.getElementById("calendarioBody").innerHTML = `<tr><td colspan="3" class="empty-state">Dati non disponibili</td></tr>`;
+    document.getElementById("calendarioBody").innerHTML = `<tr><td colspan="4" class="empty-state">Dati non disponibili</td></tr>`;
     document.getElementById("homeCalendarBody").innerHTML = `<tr><td colspan="2" class="empty-state">Dati non disponibili</td></tr>`;
-    setOnAir(false, "Impossibile verificare il calendario");
+    setOnAir(false, "Impossibile verificare il calendario", "");
   }
 }
 
-/* ---------- Banner ON AIR: attivo solo se c'è una registrazione OGGI ---------- */
-function setOnAir(isLive, label){
+function setOnAir(isLive, label, detail){
   const strip = document.getElementById("onAirStrip");
-  const lbl = document.getElementById("onAirLabel");
+  document.getElementById("onAirLabel").textContent = label;
+  document.getElementById("onAirDetail").textContent = detail || "";
   strip.classList.toggle("is-live", !!isLive);
-  lbl.textContent = label;
 }
-function checkOnAirToday(){
-  const today = new Date(); today.setHours(0,0,0,0);
-  const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
-
-  const todays = calendarEvents.filter(ev=>{
-    const start = new Date(ev.start.dateTime || ev.start.date);
-    return start >= today && start < tomorrow;
+function checkOnAirAndNext(){
+  const now = new Date();
+  const recEvents = calendarEvents.filter(ev=>isRecEvent(ev) && !isCancelled(ev));
+  const ongoing = recEvents.find(ev=>{
+    const s=new Date(ev.inizio), f=new Date(ev.fine);
+    return s<=now && f>=now;
   });
-  const recording = todays.find(ev => (ev.summary||"").toLowerCase().includes(CONFIG.ON_AIR_KEYWORD.toLowerCase()));
-
-  if(recording){
-    const time = recording.start.dateTime ? new Date(recording.start.dateTime).toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"}) : "";
-    setOnAir(true, `On air — ${recording.summary}${time?" · "+time:""}`);
+  if(ongoing){
+    const cod = extractCodFromDescription(ongoing.descrizione);
+    const ep = palinsestoData.find(r=>r["Cod_puntata"]===cod);
+    setOnAir(true, "ON AIR — "+ongoing.titolo, ep ? `Ospiti: ${ep["Ospiti esterni"]||"—"}` : "");
+    return;
+  }
+  const future = recEvents.filter(ev=>new Date(ev.inizio) > now).sort((a,b)=>new Date(a.inizio)-new Date(b.inizio));
+  if(future.length){
+    const next = future[0];
+    const cod = extractCodFromDescription(next.descrizione) || "—";
+    const ep = palinsestoData.find(r=>r["Cod_puntata"]===cod);
+    const when = new Date(next.inizio).toLocaleString("it-IT",{weekday:"long",day:"2-digit",month:"long",hour:"2-digit",minute:"2-digit"});
+    setOnAir(false, `Nessuna registrazione in corso — prossima: ${cod}`, `${when} · Ospiti: ${ep?(ep["Ospiti esterni"]||"—"):"—"}`);
   } else {
-    setOnAir(false, "Nessuna registrazione schedulata oggi");
+    setOnAir(false, "Nessuna registrazione schedulata", "");
   }
 }
+function extractCodFromDescription(desc){
+  if(!desc) return null;
+  const m = desc.match(/\[EP:([^\]]+)\]/);
+  return m ? m[1] : null;
+}
 
-/* ===================== OSPITI ===================== */
+function renderHighlights(){
+  const now = new Date();
+  const recEvents = calendarEvents.filter(ev=>isRecEvent(ev) && !isCancelled(ev) && new Date(ev.inizio)>now).sort((a,b)=>new Date(a.inizio)-new Date(b.inizio));
+  const pubEvents = calendarEvents.filter(ev=>(ev.titolo||"").toLowerCase().includes("pubblicazione") && !isCancelled(ev) && new Date(ev.inizio)>now).sort((a,b)=>new Date(a.inizio)-new Date(b.inizio));
+
+  if(recEvents.length){
+    document.getElementById("hlNextRec").textContent = recEvents[0].titolo;
+    document.getElementById("hlNextRecSub").textContent = fmtWhen(recEvents[0]);
+  } else {
+    document.getElementById("hlNextRec").textContent = "—";
+    document.getElementById("hlNextRecSub").textContent = "Nessuna in programma";
+  }
+  if(pubEvents.length){
+    document.getElementById("hlNextPub").textContent = pubEvents[0].titolo;
+    document.getElementById("hlNextPubSub").textContent = fmtWhen(pubEvents[0]);
+  } else {
+    document.getElementById("hlNextPub").textContent = "—";
+    document.getElementById("hlNextPubSub").textContent = "Nessuna in programma";
+  }
+  const weekEnd = new Date(now); weekEnd.setDate(weekEnd.getDate()+7);
+  const weekCount = calendarEvents.filter(ev=>{ const d=new Date(ev.inizio); return d>=now && d<=weekEnd && !isCancelled(ev); }).length;
+  document.getElementById("hlWeekCount").textContent = weekCount;
+}
+
+function renderWeekGrid(){
+  const grid = document.getElementById("weekGrid");
+  const today = new Date(); today.setHours(0,0,0,0);
+  const monday = new Date(today);
+  const dayNum = (monday.getDay()+6)%7;
+  monday.setDate(monday.getDate() - dayNum + weekOffset*7);
+
+  let html = "";
+  for(let i=0;i<7;i++){
+    const day = new Date(monday); day.setDate(day.getDate()+i);
+    const dayEnd = new Date(day); dayEnd.setDate(dayEnd.getDate()+1);
+    const isToday = day.getTime() === today.getTime();
+    const dayEvents = calendarEvents.filter(ev=>{ const d=new Date(ev.inizio); return d>=day && d<dayEnd; });
+    html += `<div class="week-day ${isToday?'is-today':''}">
+      <div class="week-day-head">${day.toLocaleDateString("it-IT",{weekday:"short"})}<br><b>${day.getDate()}</b></div>
+      ${dayEvents.map(ev=>{
+        const cls = isCancelled(ev) ? "ev-cancel" : (isRecEvent(ev) ? "ev-rec" : "ev-other");
+        return `<div class="week-event ${cls}">${ev.titolo}</div>`;
+      }).join("") || ''}
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+function shiftWeek(delta){ weekOffset += delta; renderWeekGrid(); }
+
 async function loadOspiti(){
   hideAlert("alertOspiti"); setWarnDot("warnOspiti", false);
   let data;
-  try{
-    data = await fetchTab(CONFIG.TABS.ospiti);
-  }catch(e){
+  try{ data = await fetchTab(CONFIG.TABS.ospiti); }
+  catch(e){
     console.error('Errore tab "'+CONFIG.TABS.ospiti+'":', e);
     showAlert("alertOspiti","error",`⚠️ Impossibile leggere la tab "${CONFIG.TABS.ospiti}": ${e.message}`);
     setWarnDot("warnOspiti", true);
@@ -547,21 +845,9 @@ async function loadOspiti(){
     document.getElementById("kpiDaChiamare").textContent = "—";
     throw e;
   }
-  if(!HAS_APPS_SCRIPT){
-    showAlert("alertOspiti","warn",`⚠️ Scrittura non configurata — puoi vedere gli ospiti ma non aggiornarne lo stato finché non imposti <code>APPS_SCRIPT_URL</code> (vedi guida setup).`);
-    setWarnDot("warnOspiti", true);
-  }
-
   const tbody = document.getElementById("ospitiBody");
-  if(!data.length){
-    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Tab "Ospiti" vuota</td></tr>`;
-    document.getElementById("kpiDaChiamare").textContent = "0";
-    return;
-  }
-  const daChiamare = data.filter(r=>{
-    const s=(r["Stato"]||"").toLowerCase();
-    return s.includes("chiamare") || s==="";
-  }).length;
+  if(!data.length){ tbody.innerHTML = `<tr><td colspan="5" class="empty-state">Tab vuota</td></tr>`; document.getElementById("kpiDaChiamare").textContent="0"; return; }
+  const daChiamare = data.filter(r=>{ const s=(r["Stato"]||"").toLowerCase(); return s.includes("chiamare")||s===""; }).length;
   document.getElementById("kpiDaChiamare").textContent = fmtNum(daChiamare);
 
   tbody.innerHTML = data.map(r=>{
@@ -573,72 +859,137 @@ async function loadOspiti(){
       <td>${r["Contatti"]||r["Email"]||r["Telefono"]||"—"}</td>
       <td>${r["Temi"]||r["Temi trattabili"]||"—"}</td>
       <td><span class="badge ${badgeClass(stato)}">${stato}</span></td>
-      <td><button class="call-btn" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="updateGuestStatus('${nomeEsc}','${prossimo}')">Segna: ${prossimo}</button></td>
+      <td><button class="icon-btn" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="updateGuestStatus('${nomeEsc}','${prossimo}')">Segna: ${prossimo}</button></td>
     </tr>`;
   }).join("");
 }
-
 async function updateGuestStatus(nome, nuovoStato){
-  if(!HAS_APPS_SCRIPT){ alert("Scrittura non configurata — vedi guida setup."); return; }
+  try{ await callAppsScript("updateGuestStatus", {nome, nuovoStato}); await loadOspiti(); }
+  catch(e){ alert("Errore: "+e.message); }
+}
+async function addGuest(){
+  const data = {
+    nome: document.getElementById("osNome").value.trim(),
+    contatti: document.getElementById("osContatti").value.trim(),
+    temi: document.getElementById("osTemi").value.trim(),
+    stato: document.getElementById("osStato").value
+  };
+  if(!data.nome){ alert("Il nome è obbligatorio"); return; }
   try{
-    await fetch(CONFIG.APPS_SCRIPT_URL, {
-      method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
-      body: JSON.stringify({action:"updateGuestStatus", data:{nome, nuovoStato}})
-    });
-    setTimeout(loadOspiti, 800);
-  }catch(e){
-    alert("Errore nell'invio: "+e.message);
-  }
+    await callAppsScript("addGuest", data);
+    ["osNome","osContatti","osTemi"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("formOspite").style.display="none";
+    await loadOspiti();
+  }catch(e){ alert("Errore: "+e.message); }
 }
 
-/* ===================== ALERT GLOBALE (Home) ===================== */
+let checklistData = [];
+async function loadTask(){
+  hideAlert("alertTask"); setWarnDot("warnTask", false);
+  try{
+    checklistData = await fetchTab(CONFIG.TABS.checklist);
+  }catch(e){
+    console.error('Errore tab "'+CONFIG.TABS.checklist+'":', e);
+    showAlert("alertTask","error",`⚠️ Impossibile leggere la tab "${CONFIG.TABS.checklist}": ${e.message}. Crea la tab con colonne: ID | Cod_puntata | Attività | Categoria | Scadenza | Fatto | Note`);
+    setWarnDot("warnTask", true);
+    document.getElementById("taskGroups").innerHTML = `<div class="empty-state">Dati non disponibili</div>`;
+    document.getElementById("kpiTaskSospesi").textContent = "—";
+    throw e;
+  }
+  const sospesi = checklistData.filter(t => String(t["Fatto"]).toUpperCase() !== "TRUE").length;
+  document.getElementById("kpiTaskSospesi").textContent = fmtNum(sospesi);
+  renderTaskGroups();
+}
+function renderTaskGroups(){
+  const wrap = document.getElementById("taskGroups");
+  const codes = [...new Set(palinsestoData.map(r=>r["Cod_puntata"]).filter(Boolean))];
+  if(!codes.length){ wrap.innerHTML = `<div class="empty-state">Nessun episodio disponibile</div>`; return; }
+
+  wrap.innerHTML = codes.map(cod=>{
+    const ep = palinsestoData.find(r=>r["Cod_puntata"]===cod);
+    const items = checklistData.filter(t=>t["Cod_puntata"]===cod);
+    return `<div class="task-group">
+      <div class="task-group-head">
+        <h3>${cod} — ${ep?ep["Titolo"]||"(senza titolo)":""}</h3>
+        <button class="btn-ghost btn-small" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="generateStandardTasks('${cod}')">+ Genera flusso standard</button>
+      </div>
+      ${items.length ? items.map(t=>`
+        <div class="task-row ${String(t["Fatto"]).toUpperCase()==='TRUE'?'done':''}">
+          <input type="checkbox" ${String(t["Fatto"]).toUpperCase()==='TRUE'?'checked':''} onchange="toggleTask('${t["ID"]}', this.checked)">
+          <span class="task-title">${t["Attività"]||"—"} <span class="badge b-grey">${t["Categoria"]||""}</span></span>
+          <span class="task-meta">${t["Scadenza"]||""}</span>
+        </div>`).join("") : `<div class="empty-state">Nessun task ancora — genera il flusso standard o aggiungine uno dal foglio</div>`}
+    </div>`;
+  }).join("");
+}
+async function toggleTask(id, fatto){
+  try{ await callAppsScript("toggleChecklistItem", {id, fatto}); await loadTask(); }
+  catch(e){ alert("Errore: "+e.message); }
+}
+function addDays(dateStr, days){
+  const d = new Date(dateStr); d.setDate(d.getDate()+days);
+  return d.toISOString().slice(0,10);
+}
+async function generateStandardTasks(cod){
+  const ep = palinsestoData.find(r=>r["Cod_puntata"]===cod);
+  if(!ep || !ep["Data pubblicazione"]){ alert("Imposta prima una Data pubblicazione per questo episodio (dalla pagina Episodi)."); return; }
+  const pub = ep["Data pubblicazione"];
+  const items = [
+    {attivita:"Montaggio episodio", categoria:"Montaggio", scadenza: addDays(pub, -10)},
+    {attivita:"Post Instagram — annuncio puntata", categoria:"Social", scadenza: addDays(pub, -7)},
+    {attivita:"Post TikTok — annuncio puntata", categoria:"Social", scadenza: addDays(pub, -7)},
+    {attivita:"Short preview — Instagram", categoria:"Social", scadenza: addDays(pub, -1)},
+    {attivita:"Short preview — TikTok", categoria:"Social", scadenza: addDays(pub, -1)},
+    {attivita:"Short preview — YouTube", categoria:"Social", scadenza: addDays(pub, -1)},
+    {attivita:"Post pubblicazione — Instagram", categoria:"Social", scadenza: pub},
+    {attivita:"Post pubblicazione — TikTok", categoria:"Social", scadenza: pub},
+  ];
+  try{
+    await callAppsScript("addChecklistItems", {codPuntata:cod, items});
+    await loadTask();
+  }catch(e){ alert("Errore generazione task: "+e.message); }
+}
+
 function renderGlobalAlerts(){
   const missing = [];
   if(!HAS_GOOGLE_KEY) missing.push("Chiave Google/YouTube");
-  if(!HAS_CALENDAR) missing.push("ID Google Calendar");
-  if(!HAS_APPS_SCRIPT) missing.push("Apps Script (scrittura Ospiti)");
+  if(!HAS_APPS_SCRIPT) missing.push("Apps Script (calendario + scrittura)");
   const el = document.getElementById("globalAlerts");
   el.innerHTML = missing.length
-    ? `<div class="alert-box warn">⚠️ Non configurato: <strong>${missing.join(" · ")}</strong>. Le altre sezioni funzionano comunque — dettagli nella pagina interessata. Vedi <code>Setup_Dashboard_Live.md</code>.</div>`
+    ? `<div class="alert-box warn">⚠️ Non configurato: <strong>${missing.join(" · ")}</strong>. Le altre sezioni funzionano comunque. Vedi <code>Setup_Dashboard_Live.md</code>.</div>`
     : "";
 }
 
-/* ===================== DIAGNOSTICA ===================== */
 async function testConnection(){
   let report = "DIAGNOSTICA COLLEGAMENTI\n\n— Google Sheet —\n";
-  for(const t of [CONFIG.TABS.palinsesto, CONFIG.TABS.ospiti, CONFIG.TABS.inventario]){
-    try{
-      const res = await fetch(csvUrl(t));
-      const text = await res.text();
-      report += res.ok && !text.trim().startsWith("<") ? `✅ "${t}" OK\n` : `❌ "${t}" risposta non valida (condivisione foglio?)\n`;
+  for(const t of [CONFIG.TABS.palinsesto, CONFIG.TABS.ospiti, CONFIG.TABS.inventario, CONFIG.TABS.checklist]){
+    try{ const res=await fetch(csvUrl(t)); const text=await res.text();
+      report += res.ok && !text.trim().startsWith("<") ? `✅ "${t}" OK\n` : `❌ "${t}" risposta non valida\n`;
     }catch(e){ report += `❌ "${t}" errore: ${e.message}\n`; }
   }
-  report += "\n— YouTube API —\n";
-  report += HAS_GOOGLE_KEY ? "✅ Chiave impostata (verifica validità sulla pagina KPI Canale)\n" : "❌ GOOGLE_API_KEY non impostata\n";
-  report += "\n— Google Calendar —\n";
-  report += HAS_CALENDAR ? "✅ ID impostato (verifica validità sulla pagina Calendario)\n" : "❌ GOOGLE_CALENDAR_ID non impostato\n";
-  report += "\n— Scrittura Ospiti —\n";
-  report += HAS_APPS_SCRIPT ? "✅ Apps Script URL impostato\n" : "❌ APPS_SCRIPT_URL non impostato\n";
+  report += "\n— YouTube API —\n" + (HAS_GOOGLE_KEY ? "✅ Chiave impostata\n" : "❌ GOOGLE_API_KEY non impostata\n");
+  report += "\n— Apps Script (Calendario + scrittura) —\n";
+  if(HAS_APPS_SCRIPT){
+    try{ const r = await fetch(CONFIG.APPS_SCRIPT_URL+"?action=ping"); const j = await r.json(); report += j.ok ? "✅ Apps Script raggiungibile\n" : "❌ Apps Script risponde con errore\n"; }
+    catch(e){ report += "❌ Apps Script non raggiungibile: "+e.message+"\n"; }
+  } else { report += "❌ APPS_SCRIPT_URL non impostato\n"; }
   alert(report);
 }
 
-/* ===================== REFRESH GLOBALE ===================== */
 async function refreshAll(){
   document.getElementById("lastUpdate").textContent = "Aggiornamento...";
   renderGlobalAlerts();
 
+  await Promise.allSettled([loadPalinsesto()]);
   const results = await Promise.allSettled([
-    loadPalinsesto().then(()=>loadChannelKpi()),
-    loadAttrezzatura(),
-    loadCalendario(),
-    loadOspiti(),
+    loadChannelKpi(), loadAttrezzatura(), loadCalendario(), loadOspiti(), loadTask()
   ]);
 
   document.getElementById("lastUpdate").textContent = "Aggiornato: " + new Date().toLocaleTimeString("it-IT");
   const falliti = results.filter(r=>r.status==="rejected").length;
   document.getElementById("connStatus").innerHTML = falliti===0
     ? '<span class="dot-ok">●</span> Tutte le fonti collegate'
-    : `<span class="dot-bad">●</span> ${falliti} fonte/i con problemi — vedi avvisi nelle pagine`;
+    : `<span class="dot-bad">●</span> ${falliti} fonte/i con problemi`;
 }
 
 window.addEventListener("DOMContentLoaded", refreshAll);
