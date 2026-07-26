@@ -368,8 +368,8 @@
 <script>
 const CONFIG = {
   SHEET_ID: "1-PDe062FZUGOtaBBBcYRWkvFNT7Ya3YC55ZjggUcw5s",
-  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxVV70ilylv9Iv_omMXNBBQIu4i9yIS34oaAutzKp7RZhvQVUaO2zBUQAZLTpIHBu-y/exec",
-  GOOGLE_API_KEY: "AIzaSyDHl09KU9mKfrKISKusemGFZi55-UbB1jE",
+  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxQ6o9yRF9PkhNWfI3PfONMD6C6Px-EB3wfgTINA1rrRVce_jCJgXz6h1-bHUhihsss/exec",
+  GOOGLE_API_KEY: "IAIzaSyDHl09KU9mKfrKISKusemGFZi55-UbB1jE",
   YOUTUBE_HANDLE: "UltimoShampooPodcast",
   ON_AIR_KEYWORD: "registrazione",
   TABS: { palinsesto: "Palinsesto", ospiti: "Ospiti", inventario: "Inventario attrezzatura", checklist: "Checklist_puntate" }
@@ -414,15 +414,23 @@ function badgeClass(stato){
   if(s.includes("in registrazione")||s.includes("montaggio")) return "b-amber";
   return "b-purple";
 }
-async function callAppsScript(action, data){
-  if(!HAS_APPS_SCRIPT) throw new Error("Apps Script non configurato");
-  const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
-    method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"},
-    body: JSON.stringify({action, data})
+function callAppsScript(action, data){
+  return new Promise((resolve, reject)=>{
+    if(!HAS_APPS_SCRIPT){ reject(new Error("Apps Script non configurato")); return; }
+    const callbackName = "jsonpCb_" + Date.now() + "_" + Math.floor(Math.random()*1e6);
+    const cleanup = ()=>{ delete window[callbackName]; if(script.parentNode) script.parentNode.removeChild(script); clearTimeout(timeoutId); };
+    const timeoutId = setTimeout(()=>{ cleanup(); reject(new Error("Timeout: Apps Script non ha risposto entro 15s")); }, 15000);
+    window[callbackName] = (result)=>{
+      cleanup();
+      if(!result || !result.ok) reject(new Error((result&&result.error)||"Errore sconosciuto"));
+      else resolve(result.result);
+    };
+    const script = document.createElement("script");
+    const dataParam = encodeURIComponent(JSON.stringify(data || {}));
+    script.src = `${CONFIG.APPS_SCRIPT_URL}?action=${encodeURIComponent(action)}&data=${dataParam}&callback=${callbackName}`;
+    script.onerror = ()=>{ cleanup(); reject(new Error("Impossibile contattare Apps Script (verifica APPS_SCRIPT_URL e distribuzione)")); };
+    document.body.appendChild(script);
   });
-  const json = await res.json();
-  if(!json.ok) throw new Error(json.error || "Errore sconosciuto");
-  return json.result;
 }
 
 
