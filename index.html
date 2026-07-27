@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultimo Shampoo Podcast</title>
+<title>Ultimo Shampoo Podcast — Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -268,7 +268,6 @@
     <div class="form-panel" id="formEpisodio" style="display:none">
       <div class="form-grid">
         <div class="form-field"><label>Titolo</label><input id="epTitolo" placeholder="Titolo episodio"></div>
-        <div class="form-field"><label>Ospiti esterni</label><select id="epOspiti" multiple size="3"></select></div>
         <div class="form-field"><label>Conduttore</label><input id="epConduttore" placeholder="Conduttore"></div>
         <div class="form-field"><label>Co-host</label><input id="epCohost" placeholder="Co-host"></div>
       </div>
@@ -277,6 +276,7 @@
         <div class="form-field"><label>Ora registrazione (opz.)</label><input type="time" id="epOraReg"></div>
         <div class="form-field"><label>Data pubblicazione (opz.)</label><input type="date" id="epDataPubb"></div>
       </div>
+      <p class="subtitle" style="margin:6px 0 0">Gli ospiti si assegnano dalla pagina Ospiti, dopo aver creato l'episodio.</p>
       <button class="btn" onclick="addEpisode()">Salva episodio</button>
     </div>
 
@@ -292,10 +292,11 @@
         <th class="sortable" data-key="Titolo" onclick="setSort('episodi','Titolo')">Titolo <span class="sort-ind">↕</span></th>
         <th>Ospiti</th>
         <th class="sortable" data-key="_stato" onclick="setSort('episodi','_stato')">Stato <span class="sort-ind">↕</span></th>
+        <th class="sortable" data-key="Data registrazione" onclick="setSort('episodi','Data registrazione')">Registrazione <span class="sort-ind">↕</span></th>
         <th class="sortable" data-key="Data pubblicazione" onclick="setSort('episodi','Data pubblicazione')">Pubblicazione <span class="sort-ind">↕</span></th>
         <th>Views</th><th>Note</th><th></th>
       </tr></thead>
-      <tbody id="episodiBody"><tr><td colspan="8" class="empty-state">Caricamento...</td></tr></tbody></table>
+      <tbody id="episodiBody"><tr><td colspan="9" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
   </section>
 
@@ -769,19 +770,21 @@ function renderEpisodiTable(){
     const cod = r["Cod_puntata"];
     const codEsc = (cod||"").replace(/'/g,"\\'");
     const dataTxt = info.data ? fmtDateTime(info.data) : "—";
-    const onChangeExpr = `saveEpisodeField('${codEsc}','Ospiti esterni', [...this.selectedOptions].map(o=>o.value).join(', '))`;
+    const ospitiDisplay = splitListClient(r["Ospiti esterni"]).join("; ") || "—";
     return `<tr>
       <td>${cod||"—"}</td>
       <td><input class="note-input" value="${(r["Titolo"]||"").replace(/"/g,"&quot;")}" onchange="saveEpisodeField('${codEsc}','Titolo',this.value)"></td>
-      <td>${guestMultiSelectHtml(r["Ospiti esterni"], onChangeExpr)}</td>
+      <td>${ospitiDisplay}</td>
       <td><span class="badge ${badgeClass(info.stato)}">${info.stato}</span><div style="font-size:10px;color:var(--text-muted);margin-top:2px">${dataTxt}</div></td>
+      <td><input type="date" class="note-input" value="${r["Data registrazione"]||""}" onchange="saveEpisodeField('${codEsc}','Data registrazione',this.value)"></td>
       <td><input type="date" class="note-input" value="${r["Data pubblicazione"]||""}" onchange="saveEpisodeField('${codEsc}','Data pubblicazione',this.value)"></td>
       <td>${s ? fmtNum(s.viewCount) : "—"}</td>
       <td><input class="note-input" value="${(r["Note"]||"").replace(/"/g,"&quot;")}" onchange="saveEpisodeField('${codEsc}','Note',this.value)" placeholder="Note..."></td>
       <td><button class="icon-btn danger" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="confirmDelete('${codEsc}', ()=>deleteEpisode('${codEsc}'))">🗑</button></td>
     </tr>`;
-  }).join("") : `<tr><td colspan="8" class="empty-state">Nessun episodio trovato</td></tr>`;
+  }).join("") : `<tr><td colspan="9" class="empty-state">Nessun episodio trovato</td></tr>`;
 }
+function splitListClient(str){ return String(str||"").split(",").map(s=>s.trim()).filter(Boolean); }
 async function saveEpisodeField(cod, campo, valore){
   try{ await callAppsScript("updateEpisodeField", {codPuntata:cod, [campo]:valore}); await loadPalinsesto(); }
   catch(e){ alert("Errore salvataggio: "+e.message); await loadPalinsesto(); }
@@ -791,10 +794,8 @@ async function deleteEpisode(cod){
   await loadPalinsesto();
 }
 async function addEpisode(){
-  const ospitiSel = [...document.getElementById("epOspiti").selectedOptions].map(o=>o.value);
   const data = {
     titolo: document.getElementById("epTitolo").value.trim(),
-    ospitiEsterni: ospitiSel.join(", "),
     conduttore: document.getElementById("epConduttore").value.trim(),
     cohost: document.getElementById("epCohost").value.trim(),
     dataRegistrazione: document.getElementById("epDataReg").value,
@@ -804,7 +805,6 @@ async function addEpisode(){
   try{
     await callAppsScript("addEpisode", data);
     ["epTitolo","epConduttore","epCohost","epDataReg","epOraReg","epDataPubb"].forEach(id=>document.getElementById(id).value="");
-    document.getElementById("epOspiti").selectedIndex = -1;
     document.getElementById("formEpisodio").style.display="none";
     await loadPalinsesto();
     await loadCalendario();
@@ -1530,8 +1530,7 @@ async function loadOspiti(){
     throw e;
   }
   populateEpisodeMultiSelect("osPuntata");
-  populateGuestMultiSelect("epOspiti");
-  renderEpisodiTable(); // aggiorna il multi-select ospiti nella tabella Episodi con i dati freschi
+  renderEpisodiTable(); // aggiorna la colonna Ospiti nella tabella Episodi con i dati freschi
   populateSelectOptions("ospitiFilterStato", ospitiData.map(r=>r["Stato"]||"Da chiamare"), tableState.ospiti.filters["Stato"]);
   const daChiamare = ospitiData.filter(r=>{ const s=(r["Stato"]||"").toLowerCase(); return s.includes("chiamare")||s===""; }).length;
   document.getElementById("kpiDaChiamare").textContent = fmtNum(daChiamare);
