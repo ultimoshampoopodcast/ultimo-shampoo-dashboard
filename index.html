@@ -535,8 +535,8 @@
         <div class="form-field"><label>Stato iniziale</label>
           <select id="osStato"><option>Da chiamare</option><option>Chiamato</option><option>Confermato</option></select>
         </div>
-        <div class="form-field"><label>Puntate collegate (opz., più selezioni possibili)</label>
-          <select id="osPuntata" multiple size="3"></select>
+        <div class="form-field"><label>Puntata collegata (opz. — per collegare lo stesso ospite a più puntate, aggiungilo di nuovo scegliendo l'altra puntata)</label>
+          <select id="osPuntata"><option value="">— nessuna —</option></select>
         </div>
       </div>
       <button class="btn" onclick="addGuest()">Salva ospite</button>
@@ -551,7 +551,7 @@
       <div class="table-scroll">
       <table><thead><tr>
         <th class="sortable" onclick="setSort('ospiti','Nome')">Nome <span class="sort-ind">↕</span></th>
-        <th>Contatti</th><th>Temi</th><th>Puntate</th><th>Stato</th><th>Note</th><th></th>
+        <th>Contatti</th><th>Temi</th><th>Puntata</th><th>Stato</th><th>Note</th><th></th>
       </tr></thead>
       <tbody id="ospitiBody"><tr><td colspan="7" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
@@ -704,7 +704,6 @@ function populateSelectOptions(selectId, values, currentVal){
   sel.value = currentVal || "";
 }
 async function confirmDelete(label, fn){
-  if(!confirm(`Eliminare definitivamente "${label}"? L'azione non è reversibile.`)) return;
   try{ await fn(); }
   catch(e){ alert("Errore eliminazione: "+e.message); }
 }
@@ -1325,7 +1324,6 @@ async function cancelEventFromModal(){
 }
 async function deleteEventFromModal(){
   if(!editingEventId) return;
-  if(!confirm("Eliminare definitivamente questo evento? L'azione non è reversibile.")) return;
   try{
     await callAppsScript("deleteCalendarEvent", {eventId: editingEventId});
     closeEventModal();
@@ -1548,17 +1546,19 @@ function renderHighlights(){
 }
 
 let ospitiData = [];
-function populateEpisodeMultiSelect(selectId){
+function populateEpisodeSingleSelect(selectId){
   const sel = document.getElementById(selectId);
   if(!sel) return;
-  const current = [...sel.selectedOptions].map(o=>o.value);
-  sel.innerHTML = palinsestoData.map(r=>`<option value="${r["Cod_puntata"]}">${r["Cod_puntata"]} — ${r["Titolo"]||"(senza titolo)"}</option>`).join("");
-  [...sel.options].forEach(o=>{ if(current.includes(o.value)) o.selected = true; });
+  const current = sel.value;
+  sel.innerHTML = `<option value="">— nessuna —</option>` +
+    palinsestoData.map(r=>`<option value="${r["Cod_puntata"]}">${r["Cod_puntata"]} — ${r["Titolo"]||"(senza titolo)"}</option>`).join("");
+  sel.value = current || "";
 }
-function episodeMultiSelectHtml(selectedCsv, onChangeExpr){
-  const selected = (selectedCsv||"").split(",").map(s=>s.trim()).filter(Boolean);
-  return `<select multiple size="3" class="note-input" ${HAS_APPS_SCRIPT?"":"disabled"} onchange="${onChangeExpr}">` +
-    palinsestoData.map(r=>`<option value="${r["Cod_puntata"]}" ${selected.includes(r["Cod_puntata"])?"selected":""}>${r["Cod_puntata"]} — ${r["Titolo"]||"(senza titolo)"}</option>`).join("") +
+function episodeSingleSelectHtml(selectedCsv, onChangeExpr){
+  const selected = (selectedCsv||"").split(",").map(s=>s.trim()).filter(Boolean)[0] || "";
+  return `<select class="note-input" ${HAS_APPS_SCRIPT?"":"disabled"} onchange="${onChangeExpr}">` +
+    `<option value="">— nessuna —</option>` +
+    palinsestoData.map(r=>`<option value="${r["Cod_puntata"]}" ${selected===r["Cod_puntata"]?"selected":""}>${r["Cod_puntata"]} — ${r["Titolo"]||"(senza titolo)"}</option>`).join("") +
     `</select>`;
 }
 async function loadOspiti(){
@@ -1572,7 +1572,7 @@ async function loadOspiti(){
     document.getElementById("kpiDaChiamare").textContent = "—";
     throw e;
   }
-  populateEpisodeMultiSelect("osPuntata");
+  populateEpisodeSingleSelect("osPuntata");
   renderEpisodiTable(); // aggiorna la colonna Ospiti nella tabella Episodi con i dati freschi
   populateSelectOptions("ospitiFilterStato", ospitiData.map(r=>r["Stato"]||"Da chiamare"), tableState.ospiti.filters["Stato"]);
   const daChiamare = ospitiData.filter(r=>{ const s=(r["Stato"]||"").toLowerCase(); return s.includes("chiamare")||s===""; }).length;
@@ -1596,12 +1596,12 @@ function renderOspitiTable(){
     const stato = r["Stato"] || "Da chiamare";
     const nomeEsc = (r["Nome"]||"").replace(/'/g,"\\'");
     const cod = r["Cod_puntata"] || "";
-    const onChangeExpr = `updateGuestField('${nomeEsc}','Cod_puntata', [...this.selectedOptions].map(o=>o.value).join(', '))`;
+    const onChangeExpr = `updateGuestField('${nomeEsc}','Cod_puntata', this.value)`;
     return `<tr>
       <td><input class="note-input" value="${(r["Nome"]||"").replace(/"/g,"&quot;")}" onchange="updateGuestField('${nomeEsc}','Nome',this.value)"></td>
       <td><input class="note-input" value="${(r["Contatti"]||"").replace(/"/g,"&quot;")}" onchange="updateGuestField('${nomeEsc}','Contatti',this.value)"></td>
       <td><input class="note-input" value="${(r["Temi"]||"").replace(/"/g,"&quot;")}" onchange="updateGuestField('${nomeEsc}','Temi',this.value)"></td>
-      <td>${episodeMultiSelectHtml(cod, onChangeExpr)}</td>
+      <td>${episodeSingleSelectHtml(cod, onChangeExpr)}</td>
       <td><select class="note-input" ${HAS_APPS_SCRIPT?"":"disabled"} onchange="updateGuestField('${nomeEsc}','Stato', this.value)">${statoOptionsHtml(stato)}</select></td>
       <td><input class="note-input" value="${(r["Note"]||"").replace(/"/g,"&quot;")}" onchange="updateGuestField('${nomeEsc}','Note',this.value)" placeholder="Note..."></td>
       <td><button class="icon-btn danger" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="confirmDelete('${nomeEsc}', ()=>deleteGuest('${nomeEsc}'))">🗑</button></td>
@@ -1617,19 +1617,18 @@ async function deleteGuest(nome){
   await loadOspiti();
 }
 async function addGuest(){
-  const puntateSel = [...document.getElementById("osPuntata").selectedOptions].map(o=>o.value);
   const data = {
     nome: document.getElementById("osNome").value.trim(),
     contatti: document.getElementById("osContatti").value.trim(),
     temi: document.getElementById("osTemi").value.trim(),
     stato: document.getElementById("osStato").value,
-    codPuntata: puntateSel.join(", ")
+    codPuntata: document.getElementById("osPuntata").value
   };
   if(!data.nome){ alert("Il nome è obbligatorio"); return; }
   try{
     await callAppsScript("addGuest", data);
     ["osNome","osContatti","osTemi"].forEach(id=>document.getElementById(id).value="");
-    document.getElementById("osPuntata").selectedIndex = -1;
+    document.getElementById("osPuntata").value = "";
     document.getElementById("formOspite").style.display="none";
     await loadOspiti();
   }catch(e){ alert("Errore: "+e.message); }
