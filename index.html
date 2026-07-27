@@ -245,15 +245,30 @@
 
     <div id="globalAlerts"></div>
 
-    <div class="section-label"><span class="tag">01</span><h2>Numeri chiave</h2><div class="line"></div></div>
+    <div class="section-label"><span class="tag">01</span><h2>Episodi</h2><div class="line"></div></div>
     <div class="kpi-grid">
-      <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Episodi totali</span></div><div class="kpi-value" id="kpiEpisodiTotali">—</div></div>
-      <div class="kpi-card" style="--kpi-color:#B48EDE"><div class="kpi-top"><span class="kpi-name">Iscritti canale</span></div><div class="kpi-value" id="kpiIscritti">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#5FB8A6"><div class="kpi-top"><span class="kpi-name">Registrati</span></div><div class="kpi-value" id="kpiEpRegistrati">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Da registrare</span></div><div class="kpi-value" id="kpiEpDaRegistrare">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#EFA75E"><div class="kpi-top"><span class="kpi-name">Da montare</span></div><div class="kpi-value" id="kpiEpDaMontare">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#B48EDE"><div class="kpi-top"><span class="kpi-name">Da pubblicare</span></div><div class="kpi-value" id="kpiEpDaPubblicare">—</div></div>
+    </div>
+
+    <div class="section-label"><span class="tag">02</span><h2>Operatività</h2><div class="line"></div></div>
+    <div class="kpi-grid">
       <div class="kpi-card linkable" style="--kpi-color:#F0A0C4" onclick="goToPage('ospiti')"><div class="kpi-top"><span class="kpi-name">Ospiti da chiamare</span></div><div class="kpi-value" id="kpiDaChiamare">—</div></div>
       <div class="kpi-card linkable" style="--kpi-color:#EFA75E" onclick="goToPage('task')"><div class="kpi-top"><span class="kpi-name">Task in sospeso</span></div><div class="kpi-value" id="kpiTaskSospesi">—</div></div>
     </div>
 
-    <div class="section-label"><span class="tag">02</span><h2>Prossimi 5 eventi in calendario</h2><div class="line"></div></div>
+    <div class="section-label"><span class="tag">03</span><h2>Canale</h2><div class="line"></div></div>
+    <div class="kpi-grid">
+      <div class="kpi-card" style="--kpi-color:#B48EDE"><div class="kpi-top"><span class="kpi-name">Iscritti</span></div><div class="kpi-value" id="kpiIscritti">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Views medie/video</span></div><div class="kpi-value" id="kpiAvgViews">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#EFA75E"><div class="kpi-top"><span class="kpi-name">Like medi/video</span></div><div class="kpi-value" id="kpiAvgLike">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#F0A0C4"><div class="kpi-top"><span class="kpi-name">Commenti medi/video</span></div><div class="kpi-value" id="kpiAvgComments">—</div></div>
+    </div>
+    <a href="https://www.youtube.com/@UltimoShampooPodcast" target="_blank" class="btn-ghost" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;margin-bottom:28px">▶ Vai al canale YouTube</a>
+
+    <div class="section-label"><span class="tag">→</span><h2>Prossimi 5 eventi in calendario</h2><div class="line"></div></div>
     <div class="table-wrap"><div class="table-scroll">
       <table><thead><tr><th>Quando</th><th>Evento</th></tr></thead>
       <tbody id="homeCalendarBody"><tr><td colspan="2" class="empty-state">Caricamento...</td></tr></tbody></table>
@@ -737,7 +752,7 @@ async function loadPalinsesto(){
   hideAlert("alertEpisodi"); setWarnDot("warnEpisodi", false);
   try{
     palinsestoData = await fetchTab(CONFIG.TABS.palinsesto);
-    document.getElementById("kpiEpisodiTotali").textContent = fmtNum(palinsestoData.length);
+    updateHomeEpisodeKpis();
 
     let videoIds = palinsestoData.map(r=>extractYoutubeId(r["Link"]||r["Link intervista"])).filter(Boolean);
     if(HAS_GOOGLE_KEY && videoIds.length) lastPodStats = await fetchVideoStats(videoIds);
@@ -748,10 +763,29 @@ async function loadPalinsesto(){
     console.error('Errore tab "'+CONFIG.TABS.palinsesto+'":', e);
     showAlert("alertEpisodi","error",`⚠️ Impossibile leggere la tab "${CONFIG.TABS.palinsesto}": ${e.message}`);
     setWarnDot("warnEpisodi", true);
-    document.getElementById("episodiBody").innerHTML = `<tr><td colspan="8" class="empty-state">Dati non disponibili</td></tr>`;
-    document.getElementById("kpiEpisodiTotali").textContent = "—";
+    document.getElementById("episodiBody").innerHTML = `<tr><td colspan="9" class="empty-state">Dati non disponibili</td></tr>`;
+    ["kpiEpRegistrati","kpiEpDaRegistrare","kpiEpDaMontare","kpiEpDaPubblicare"].forEach(id=>document.getElementById(id).textContent="—");
     throw e;
   }
+}
+function updateHomeEpisodeKpis(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  let registrati=0, daRegistrare=0, daMontare=0, daPubblicare=0;
+  palinsestoData.forEach(r=>{
+    const stato = computeEpisodeStato(r).stato;
+    const haLink = !!(r["Link"]||r["Link intervista"]);
+    if(stato==="Registrata") registrati++;
+    if(stato==="Da registrare") daRegistrare++;
+    if(stato==="Registrata" && !haLink) daMontare++;
+    if(r["Data pubblicazione"]){
+      const dp = new Date(r["Data pubblicazione"]); dp.setHours(0,0,0,0);
+      if(!isNaN(dp) && dp >= today) daPubblicare++;
+    }
+  });
+  document.getElementById("kpiEpRegistrati").textContent = fmtNum(registrati);
+  document.getElementById("kpiEpDaRegistrare").textContent = fmtNum(daRegistrare);
+  document.getElementById("kpiEpDaMontare").textContent = fmtNum(daMontare);
+  document.getElementById("kpiEpDaPubblicare").textContent = fmtNum(daPubblicare);
 }
 function renderEpisodiTable(){
   tableState.episodi.filters["_stato"] = document.getElementById("episodiFilterStato").value;
@@ -902,10 +936,11 @@ async function loadChannelKpi(){
     // --- Shorts: scansione di tutti i video del canale, classificati per durata ---
     const uploadsId = ch.contentDetails && ch.contentDetails.relatedPlaylists && ch.contentDetails.relatedPlaylists.uploads;
     let shortsIds = [];
+    let shorts = [];
     if(uploadsId){
       const allIds = await fetchAllUploadIds(uploadsId, 200); // limite di sicurezza, vedi guida
       const allVideos = await fetchVideosFull(allIds);
-      const shorts = allVideos
+      shorts = allVideos
         .map(v=>({
           id: v.id,
           titolo: v.snippet.title,
@@ -926,6 +961,12 @@ async function loadChannelKpi(){
     } else {
       document.getElementById("shortsVideosBody").innerHTML = `<tr><td colspan="5" class="empty-state">Impossibile leggere la playlist caricamenti del canale</td></tr>`;
     }
+
+    // --- Medie combinate (podcast + shorts) per la Home ---
+    const allVideosForAvg = [...podRows, ...shorts];
+    document.getElementById("kpiAvgViews").textContent = fmtNum(avg(allVideosForAvg.map(v=>v.views)));
+    document.getElementById("kpiAvgLike").textContent = fmtNum(avg(allVideosForAvg.map(v=>v.like)));
+    document.getElementById("kpiAvgComments").textContent = fmtNum(avg(allVideosForAvg.map(v=>v.comm)));
 
     populateChartScopeSelect();
     await loadAnalytics(podcastIds, shortsIds);
@@ -1401,6 +1442,8 @@ async function loadCalendario(){
     renderCalendarioTable();
     checkOnAirAndNext();
     renderHighlights();
+    updateHomeEpisodeKpis();
+    if(palinsestoData.length) renderEpisodiTable();
   }catch(e){
     console.error("Errore Google Calendar:", e);
     showAlert("alertCalendario","warn",`⚠️ Errore calendario: ${e.message}. Verifica CALENDAR_ID nell'Apps Script e che l'App Web sia distribuita correttamente.`);
