@@ -8,6 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.11/index.global.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.11/locales-all.global.min.js"></script>
 <style>
   :root{
     --bg:#FAFAF9; --panel:#FFFFFF; --panel-alt:#F3F1F6;
@@ -78,14 +80,18 @@
   .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px;}
   .kpi-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 15px 13px;position:relative;}
   .kpi-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--kpi-color,var(--purple));border-radius:12px 12px 0 0;}
-  .kpi-card.linkable{cursor:pointer;position:relative;}
-  .kpi-card.linkable:hover{border-color:var(--purple);box-shadow:0 2px 10px rgba(180,142,222,.18);}
-  .kpi-card.linkable::after{
-    content:"Vai alla pagina →"; position:absolute; bottom:10px; right:15px;
-    font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--purple);
-    opacity:0; transition:opacity .15s;
+  .kpi-card.linkable{
+    cursor:pointer;position:relative;
+    border:1.5px dashed var(--purple);
+    background:linear-gradient(180deg, rgba(180,142,222,.05), transparent 60%);
+    padding-bottom:30px;
   }
-  .kpi-card.linkable:hover::after{opacity:1;}
+  .kpi-card.linkable:hover{border-style:solid;box-shadow:0 2px 12px rgba(180,142,222,.25);}
+  .kpi-card.linkable::after{
+    content:"VAI →"; position:absolute; bottom:10px; right:15px;
+    font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; letter-spacing:.05em;
+    color:#fff; background:var(--purple); padding:2px 8px; border-radius:5px;
+  }
   .kpi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
   .kpi-name{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);}
   .kpi-value{font-family:'IBM Plex Mono',monospace;font-size:27px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1;}
@@ -160,15 +166,27 @@
   .cal-highlight-card .hl-main{font-size:14px;font-weight:600;}
   .cal-highlight-card .hl-sub{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
 
-  .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:28px;}
-  .week-day{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px;min-height:130px;}
-  .week-day.is-today{border-color:var(--purple);box-shadow:0 0 0 2px rgba(180,142,222,.15);}
-  .week-day-head{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;}
-  .week-day-head b{color:var(--text-primary);font-size:14px;}
-  .week-event{font-size:10.5px;padding:4px 6px;border-radius:5px;margin-bottom:4px;background:var(--panel-alt);cursor:default;line-height:1.3;}
-  .week-event.ev-rec{background:rgba(226,112,95,.13);color:#93341F;}
-  .week-event.ev-cancel{background:rgba(139,136,148,.13);color:var(--text-muted);text-decoration:line-through;}
-  .week-event.ev-other{background:rgba(111,163,216,.13);color:#3D77AD;}
+  /* FullCalendar — riadattato al tema */
+  .fc-wrap{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:28px;}
+  .fc{font-family:'Inter',sans-serif;color:var(--text-primary);}
+  .fc .fc-toolbar-title{font-family:'Fraunces',serif;font-size:18px;font-weight:600;}
+  .fc .fc-button{background:var(--panel-alt);border:1px solid var(--border);color:var(--text-primary);box-shadow:none;text-transform:capitalize;font-family:'Inter',sans-serif;font-size:12.5px;padding:6px 12px;}
+  .fc .fc-button:hover{background:var(--border);}
+  .fc .fc-button-primary:not(:disabled).fc-button-active{background:var(--purple);border-color:var(--purple);color:#fff;}
+  .fc .fc-button:focus{box-shadow:none;}
+  .fc-theme-standard td, .fc-theme-standard th{border-color:var(--border);}
+  .fc-daygrid-day.fc-day-today{background:rgba(180,142,222,.07);}
+  .fc-timegrid-slot-label, .fc-col-header-cell-cushion, .fc-daygrid-day-number{color:var(--text-muted);font-size:11px;}
+  .fc-event{border:none;font-size:11px;padding:1px 4px;cursor:pointer;}
+  .fc-event.ev-cancelled{opacity:.55;text-decoration:line-through;}
+
+  /* Modal evento (creazione/modifica) */
+  .modal-overlay{position:fixed;inset:0;background:rgba(35,34,43,.45);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px;}
+  .modal-overlay.show{display:flex;}
+  .modal-box{background:var(--panel);border-radius:14px;padding:22px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;}
+  .modal-box h3{font-family:'Fraunces',serif;font-size:17px;margin:0 0 16px;}
+  .modal-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
+  .modal-close{position:absolute;top:14px;right:18px;cursor:pointer;color:var(--text-muted);font-size:16px;background:none;border:none;}
 
   .task-group{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden;}
   .task-group-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--panel-alt);border-bottom:1px solid var(--border);}
@@ -188,7 +206,7 @@
     .sidebar-title,.sidebar-sub,.sidebar-status{display:none;}
     .kpi-grid{grid-template-columns:repeat(2,1fr);}
     .cal-highlights{grid-template-columns:1fr;}
-    .week-grid{grid-template-columns:repeat(2,1fr);}
+    .fc-wrap{padding:8px;}
   }
   :focus-visible{outline:2px solid var(--purple);outline-offset:2px;}
 </style>
@@ -197,11 +215,11 @@
 
 <nav class="sidebar">
   <div class="sidebar-logo-wrap"><img id="logoImg" alt="Ultimo Shampoo Podcast"><div class="sidebar-title">Ultimo <span>Shampoo</span></div></div>
-  <div class="sidebar-sub">WORKSPACE PETTINATO</div>
+  <div class="sidebar-sub">DASHBOARD DI PRODUZIONE</div>
   <div class="nav-item active" data-page="home"><span class="ic">🏠</span> Home</div>
   <div class="nav-item" data-page="episodi"><span class="ic">🎬</span> Episodi<span class="warn-dot" id="warnEpisodi" style="display:none"></span></div>
   <div class="nav-item" data-page="task"><span class="ic">✅</span> Task<span class="warn-dot" id="warnTask" style="display:none"></span></div>
-  <div class="nav-item" data-page="kpi-canale"><span class="ic">📈</span> KPI YouTube<span class="warn-dot" id="warnYoutube" style="display:none"></span></div>
+  <div class="nav-item" data-page="kpi-canale"><span class="ic">📈</span> KPI Canale<span class="warn-dot" id="warnYoutube" style="display:none"></span></div>
   <div class="nav-item" data-page="attrezzatura"><span class="ic">🎥</span> Attrezzatura<span class="warn-dot" id="warnAttrezzatura" style="display:none"></span></div>
   <div class="nav-item" data-page="calendario"><span class="ic">📅</span> Calendario<span class="warn-dot" id="warnCalendario" style="display:none"></span></div>
   <div class="nav-item" data-page="ospiti"><span class="ic">👤</span> Ospiti<span class="warn-dot" id="warnOspiti" style="display:none"></span></div>
@@ -210,7 +228,6 @@
     <button class="btn-ghost btn-small" style="width:100%;margin-top:8px" onclick="refreshAll()">↻ Aggiorna tutto</button>
     <button class="btn-ghost btn-small" style="width:100%;margin-top:6px" onclick="testConnection()">🔍 Diagnostica</button>
     <div class="sidebar-lastupdate" id="lastUpdate">—</div>
-    <a href="https://www.youtube.com/@UltimoShampooPodcast" target="_blank" style="color:var(--purple)">@UltimoShampooPodcast</a>
   </div>
 </nav>
 
@@ -251,9 +268,13 @@
     <div class="form-panel" id="formEpisodio" style="display:none">
       <div class="form-grid">
         <div class="form-field"><label>Titolo</label><input id="epTitolo" placeholder="Titolo episodio"></div>
-        <div class="form-field"><label>Ospiti esterni</label><input id="epOspiti" placeholder="Nome ospite"></div>
+        <div class="form-field"><label>Ospiti esterni</label><select id="epOspiti" multiple size="3"></select></div>
         <div class="form-field"><label>Conduttore</label><input id="epConduttore" placeholder="Conduttore"></div>
         <div class="form-field"><label>Co-host</label><input id="epCohost" placeholder="Co-host"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label>Data registrazione (opz., crea anche l'evento in calendario)</label><input type="date" id="epDataReg"></div>
+        <div class="form-field"><label>Ora registrazione (opz.)</label><input type="time" id="epOraReg"></div>
         <div class="form-field"><label>Data pubblicazione (opz.)</label><input type="date" id="epDataPubb"></div>
       </div>
       <button class="btn" onclick="addEpisode()">Salva episodio</button>
@@ -269,12 +290,9 @@
       <table><thead><tr>
         <th class="sortable" data-key="Cod_puntata" onclick="setSort('episodi','Cod_puntata')">Cod. <span class="sort-ind">↕</span></th>
         <th class="sortable" data-key="Titolo" onclick="setSort('episodi','Titolo')">Titolo <span class="sort-ind">↕</span></th>
-        <th>Ospite</th>
+        <th>Ospiti</th>
         <th class="sortable" data-key="_stato" onclick="setSort('episodi','_stato')">Stato <span class="sort-ind">↕</span></th>
-        <th class="sortable" data-key="Data pubblicazione" onclick="setSort('episodi','Data pubblicazione')">Data <span class="sort-ind">↕</span></th>
-        <th>Views</th><th>Note</th><th></th>
-      </tr></thead>
-      <tbody id="episodiBody"><tr><td colspan="8" class="empty-state">Caricamento...</td></tr></tbody></table>
+        <th class="sortable" data-key="Data pubblicazione" onclick="setSort('episodi','Data pubblicazione')">Pubblicazione <span class="sort-ind">↕</span></th>
     </div></div>
   </section>
 
@@ -339,7 +357,10 @@
       <tbody id="shortsVideosBody"><tr><td colspan="5" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
 
-    <div class="section-label"><span class="tag">📈</span><h2>Andamento nel tempo (mensile)</h2><div class="spacer"></div>
+    <div class="section-label"><span class="tag">📈</span><h2>Andamento nel tempo</h2><div class="spacer"></div>
+      <select id="chartScopeSelect" onchange="onChartScopeChange()" style="background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-family:'Inter',sans-serif;font-size:12.5px;margin-right:8px;">
+        <option value="agg">Confronto Podcast vs Shorts</option>
+      </select>
       <select id="chartMetricSelect" onchange="renderAnalyticsChart()" style="background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-family:'Inter',sans-serif;font-size:12.5px;">
         <option value="avgDuration">Durata media visione (min)</option>
         <option value="avgPercentage">% media visione</option>
@@ -398,10 +419,49 @@
   </section>
 
   <section class="page" id="page-calendario">
-    <div class="section-label"><span class="tag">CAL</span><h2>Calendario</h2><div class="spacer"></div><button class="btn btn-small" onclick="toggleForm('formEvento')">+ Nuovo evento</button></div>
+    <div class="section-label"><span class="tag">CAL</span><h2>Calendario</h2><div class="spacer"></div><button class="btn btn-small" onclick="openEventModal(null)">+ Nuovo evento</button></div>
     <div id="alertCalendario" class="alert-box warn hidden"></div>
 
-    <div class="form-panel" id="formEvento" style="display:none">
+    <div class="section-label"><span class="tag">→</span><h2>In evidenza</h2><div class="line"></div></div>
+    <div class="cal-highlights" id="calHighlights">
+      <div class="cal-highlight-card"><div class="hl-label">Prossima registrazione</div><div class="hl-main" id="hlNextRec">—</div><div class="hl-sub" id="hlNextRecSub"></div></div>
+      <div class="cal-highlight-card"><div class="hl-label">Prossima pubblicazione</div><div class="hl-main" id="hlNextPub">—</div><div class="hl-sub" id="hlNextPubSub"></div></div>
+      <div class="cal-highlight-card"><div class="hl-label">Eventi questa settimana</div><div class="hl-main" id="hlWeekCount">—</div><div class="hl-sub">nei prossimi 7 giorni</div></div>
+    </div>
+
+    <div class="fc-wrap"><div id="fullCalendarEl"></div></div>
+
+    <div class="section-label"><span class="tag">→</span><h2>Elenco eventi (passati e futuri)</h2><div class="line"></div></div>
+    <div class="table-wrap">
+      <div class="filter-bar">
+        <input type="text" id="calendarioSearch" placeholder="🔍 Cerca evento..." oninput="renderCalendarioTable()">
+        <select id="calendarioFilterTipo" onchange="renderCalendarioTable()">
+          <option value="">Tutti i tipi</option>
+          <option value="registrazione">Registrazione</option>
+          <option value="altro">Altro</option>
+        </select>
+        <select id="calendarioFilterQuando" onchange="renderCalendarioTable()">
+          <option value="">Passati e futuri</option>
+          <option value="futuri">Solo futuri</option>
+          <option value="passati">Solo passati</option>
+        </select>
+        <span class="filter-count" id="calendarioCount"></span>
+      </div>
+      <div class="table-scroll">
+      <table><thead><tr>
+        <th class="sortable" onclick="setSort('calendario','inizio')">Quando <span class="sort-ind">↕</span></th>
+        <th class="sortable" onclick="setSort('calendario','titolo')">Evento <span class="sort-ind">↕</span></th>
+        <th>Tipo</th><th></th>
+      </tr></thead>
+      <tbody id="calendarioBody"><tr><td colspan="4" class="empty-state">Caricamento...</td></tr></tbody></table>
+    </div></div>
+  </section>
+
+  <!-- ============ MODAL EVENTO (creazione + modifica) ============ -->
+  <div class="modal-overlay" id="eventModalOverlay">
+    <div class="modal-box" style="position:relative">
+      <button class="modal-close" onclick="closeEventModal()">✕</button>
+      <h3 id="eventModalTitle">Nuovo evento</h3>
       <div class="form-grid">
         <div class="form-field"><label>Data (obbligatoria)</label><input type="date" id="evData" required></div>
         <div class="form-field"><label>Ora inizio (opz.)</label><input type="time" id="evOraInizio"></div>
@@ -430,41 +490,19 @@
         </div>
       </div>
       <div class="form-grid">
+        <div class="form-field" style="grid-column:1/-1"><label>Titolo evento (se diverso da quello generato)</label><input id="evTitoloManuale" placeholder="Lascia vuoto per generarlo automaticamente"></div>
+      </div>
+      <div class="form-grid">
         <div class="form-field" style="grid-column:1/-1"><label>Note (opz.)</label><input id="evNote" placeholder="Note libere"></div>
       </div>
-      <button class="btn" onclick="addCalendarEventFromForm()">Salva evento</button>
-    </div>
-
-    <div class="section-label"><span class="tag">→</span><h2>In evidenza</h2><div class="line"></div></div>
-    <div class="cal-highlights" id="calHighlights">
-      <div class="cal-highlight-card"><div class="hl-label">Prossima registrazione</div><div class="hl-main" id="hlNextRec">—</div><div class="hl-sub" id="hlNextRecSub"></div></div>
-      <div class="cal-highlight-card"><div class="hl-label">Prossima pubblicazione</div><div class="hl-main" id="hlNextPub">—</div><div class="hl-sub" id="hlNextPubSub"></div></div>
-      <div class="cal-highlight-card"><div class="hl-label">Eventi questa settimana</div><div class="hl-main" id="hlWeekCount">—</div><div class="hl-sub">nei prossimi 7 giorni</div></div>
-    </div>
-
-    <div class="section-label"><span class="tag">7GG</span><h2>Vista settimanale</h2><div class="spacer"></div><button class="btn-ghost btn-small" onclick="shiftWeek(-1)">← Sett. prec.</button><button class="btn-ghost btn-small" onclick="shiftWeek(1)">Sett. succ. →</button></div>
-    <div class="week-grid" id="weekGrid"></div>
-
-    <div class="section-label"><span class="tag">→</span><h2>Prossimi eventi (30 giorni)</h2><div class="line"></div></div>
-    <div class="table-wrap">
-      <div class="filter-bar">
-        <input type="text" id="calendarioSearch" placeholder="🔍 Cerca evento..." oninput="renderCalendarioTable()">
-        <select id="calendarioFilterTipo" onchange="renderCalendarioTable()">
-          <option value="">Tutti i tipi</option>
-          <option value="registrazione">Registrazione</option>
-          <option value="altro">Altro</option>
-        </select>
-        <span class="filter-count" id="calendarioCount"></span>
+      <div class="modal-actions">
+        <button class="btn" onclick="saveEventFromModal()">Salva</button>
+        <button class="btn-ghost" id="evAnnullaBtn" style="display:none" onclick="cancelEventFromModal()">Segna annullata</button>
+        <button class="icon-btn danger" id="evEliminaBtn" style="display:none" onclick="deleteEventFromModal()">🗑 Elimina</button>
       </div>
-      <div class="table-scroll">
-      <table><thead><tr>
-        <th class="sortable" onclick="setSort('calendario','inizio')">Quando <span class="sort-ind">↕</span></th>
-        <th class="sortable" onclick="setSort('calendario','titolo')">Evento <span class="sort-ind">↕</span></th>
-        <th>Tipo</th><th></th>
-      </tr></thead>
-      <tbody id="calendarioBody"><tr><td colspan="4" class="empty-state">Caricamento...</td></tr></tbody></table>
-    </div></div>
-  </section>
+    </div>
+  </div>
+
 
   <section class="page" id="page-ospiti">
     <div class="section-label"><span class="tag">OSP</span><h2>Ospiti</h2><div class="spacer"></div><button class="btn btn-small" onclick="toggleForm('formOspite')">+ Nuovo ospite</button></div>
@@ -478,8 +516,8 @@
         <div class="form-field"><label>Stato iniziale</label>
           <select id="osStato"><option>Da chiamare</option><option>Chiamato</option><option>Confermato</option></select>
         </div>
-        <div class="form-field"><label>Puntata collegata (opz.)</label>
-          <select id="osPuntata"><option value="">— nessuna —</option></select>
+        <div class="form-field"><label>Puntate collegate (opz., più selezioni possibili)</label>
+          <select id="osPuntata" multiple size="3"></select>
         </div>
       </div>
       <button class="btn" onclick="addGuest()">Salva ospite</button>
@@ -494,7 +532,7 @@
       <div class="table-scroll">
       <table><thead><tr>
         <th class="sortable" onclick="setSort('ospiti','Nome')">Nome <span class="sort-ind">↕</span></th>
-        <th>Contatti</th><th>Temi</th><th>Puntata</th><th>Stato</th><th>Note</th><th></th>
+        <th>Contatti</th><th>Temi</th><th>Puntate</th><th>Stato</th><th>Note</th><th></th>
       </tr></thead>
       <tbody id="ospitiBody"><tr><td colspan="7" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
@@ -547,6 +585,17 @@ async function fetchTab(tabName){
 }
 function extractYoutubeId(url){ if(!url) return null; const m=url.match(/(?:v=|youtu\.be\/|shorts\/)([a-zA-Z0-9_-]{11})/); return m?m[1]:null; }
 function fmtNum(n){ if(n===null||n===undefined||isNaN(n)) return "—"; return Number(n).toLocaleString("it-IT"); }
+function fmtDate(d){
+  const dt = d instanceof Date ? d : new Date(d);
+  if(isNaN(dt)) return "—";
+  return String(dt.getDate()).padStart(2,"0")+"/"+String(dt.getMonth()+1).padStart(2,"0")+"/"+dt.getFullYear();
+}
+function fmtTime(d){
+  const dt = d instanceof Date ? d : new Date(d);
+  if(isNaN(dt)) return "";
+  return String(dt.getHours()).padStart(2,"0")+":"+String(dt.getMinutes()).padStart(2,"0");
+}
+function fmtDateTime(d){ const t=fmtTime(d); return fmtDate(d)+(t?" "+t:""); }
 function badgeClass(stato){
   const s=(stato||"").toLowerCase();
   if(s.includes("pubblicat")||s.includes("registrat")||s.includes("confermat")) return "b-blue";
@@ -664,6 +713,22 @@ function computeEpisodeStato(row){
 }
 
 let lastPodStats = {};
+function populateGuestMultiSelect(selectId){
+  const sel = document.getElementById(selectId);
+  if(!sel) return;
+  const current = [...sel.selectedOptions].map(o=>o.value);
+  sel.innerHTML = ospitiData.map(o=>`<option value="${(o["Nome"]||"").replace(/"/g,"&quot;")}">${o["Nome"]}</option>`).join("");
+  [...sel.options].forEach(o=>{ if(current.includes(o.value)) o.selected = true; });
+}
+function guestMultiSelectHtml(selectedCsv, onChangeExpr){
+  const selected = (selectedCsv||"").split(",").map(s=>s.trim()).filter(Boolean);
+  const namesFromData = ospitiData.map(o=>o["Nome"]).filter(Boolean);
+  const allNames = [...new Set([...namesFromData, ...selected])];
+  return `<select multiple size="3" class="note-input" onchange="${onChangeExpr}">` +
+    allNames.map(n=>`<option value="${n.replace(/"/g,"&quot;")}" ${selected.includes(n)?"selected":""}>${n}</option>`).join("") +
+    `</select>`;
+}
+
 async function loadPalinsesto(){
   hideAlert("alertEpisodi"); setWarnDot("warnEpisodi", false);
   try{
@@ -700,11 +765,12 @@ function renderEpisodiTable(){
     const info = computeEpisodeStato(r);
     const cod = r["Cod_puntata"];
     const codEsc = (cod||"").replace(/'/g,"\\'");
-    const dataTxt = info.data ? info.data.toLocaleDateString("it-IT",{day:"2-digit",month:"short",year:"numeric"}) + (info.stato==="In registrazione"||info.stato==="Da registrare" ? " "+info.data.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"}) : "") : "—";
+    const dataTxt = info.data ? fmtDateTime(info.data) : "—";
+    const onChangeExpr = `saveEpisodeField('${codEsc}','Ospiti esterni', [...this.selectedOptions].map(o=>o.value).join(', '))`;
     return `<tr>
       <td>${cod||"—"}</td>
       <td><input class="note-input" value="${(r["Titolo"]||"").replace(/"/g,"&quot;")}" onchange="saveEpisodeField('${codEsc}','Titolo',this.value)"></td>
-      <td><input class="note-input" value="${(r["Ospiti esterni"]||"").replace(/"/g,"&quot;")}" onchange="saveEpisodeField('${codEsc}','Ospiti esterni',this.value)"></td>
+      <td>${guestMultiSelectHtml(r["Ospiti esterni"], onChangeExpr)}</td>
       <td><span class="badge ${badgeClass(info.stato)}">${info.stato}</span><div style="font-size:10px;color:var(--text-muted);margin-top:2px">${dataTxt}</div></td>
       <td><input type="date" class="note-input" value="${r["Data pubblicazione"]||""}" onchange="saveEpisodeField('${codEsc}','Data pubblicazione',this.value)"></td>
       <td>${s ? fmtNum(s.viewCount) : "—"}</td>
@@ -714,7 +780,7 @@ function renderEpisodiTable(){
   }).join("") : `<tr><td colspan="8" class="empty-state">Nessun episodio trovato</td></tr>`;
 }
 async function saveEpisodeField(cod, campo, valore){
-  try{ await callAppsScript("updateEpisodeField", {codPuntata:cod, [campo]:valore}); }
+  try{ await callAppsScript("updateEpisodeField", {codPuntata:cod, [campo]:valore}); await loadPalinsesto(); }
   catch(e){ alert("Errore salvataggio: "+e.message); await loadPalinsesto(); }
 }
 async function deleteEpisode(cod){
@@ -722,18 +788,23 @@ async function deleteEpisode(cod){
   await loadPalinsesto();
 }
 async function addEpisode(){
+  const ospitiSel = [...document.getElementById("epOspiti").selectedOptions].map(o=>o.value);
   const data = {
     titolo: document.getElementById("epTitolo").value.trim(),
-    ospitiEsterni: document.getElementById("epOspiti").value.trim(),
+    ospitiEsterni: ospitiSel.join(", "),
     conduttore: document.getElementById("epConduttore").value.trim(),
     cohost: document.getElementById("epCohost").value.trim(),
+    dataRegistrazione: document.getElementById("epDataReg").value,
+    oraRegistrazione: document.getElementById("epOraReg").value,
     dataPubblicazione: document.getElementById("epDataPubb").value
   };
   try{
     await callAppsScript("addEpisode", data);
-    ["epTitolo","epOspiti","epConduttore","epCohost","epDataPubb"].forEach(id=>document.getElementById(id).value="");
+    ["epTitolo","epConduttore","epCohost","epDataReg","epOraReg","epDataPubb"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("epOspiti").selectedIndex = -1;
     document.getElementById("formEpisodio").style.display="none";
     await loadPalinsesto();
+    await loadCalendario();
   }catch(e){ alert("Errore: "+e.message); }
 }
 
@@ -816,13 +887,14 @@ async function loadChannelKpi(){
     const podRows = palinsestoData.map(r=>{
       const id = extractYoutubeId(r["Link"]||r["Link intervista"]);
       const s = id ? podStats[id] : null;
-      return {titolo: r["Titolo"]||"—", views: s?parseInt(s.viewCount):-1, like: s?parseInt(s.likeCount||0):0, comm: s?parseInt(s.commentCount||0):0};
+      return {id, titolo: r["Titolo"]||"—", views: s?parseInt(s.viewCount):-1, like: s?parseInt(s.likeCount||0):0, comm: s?parseInt(s.commentCount||0):0};
     }).filter(r=>r.views>=0).sort((a,b)=>b.views-a.views);
     document.getElementById("podEpisodi").textContent = fmtNum(podRows.length);
     document.getElementById("podViews").textContent = fmtNum(podRows.reduce((a,r)=>a+r.views,0));
     document.getElementById("podAvg").textContent = fmtNum(avg(podRows.map(r=>r.views)));
     document.getElementById("podAvgLike").textContent = fmtNum(avg(podRows.map(r=>r.like)));
     renderVideoTable("topVideosBody", podRows.slice(0,10));
+    videoListPodcast = podRows.map(r=>({id:r.id, titolo:r.titolo}));
 
     // --- Shorts: scansione di tutti i video del canale, classificati per durata ---
     const uploadsId = ch.contentDetails && ch.contentDetails.relatedPlaylists && ch.contentDetails.relatedPlaylists.uploads;
@@ -842,6 +914,7 @@ async function loadChannelKpi(){
         .filter(v=>v.durata>0 && v.durata<=SHORTS_MAX_SECONDS)
         .sort((a,b)=>b.views-a.views);
       shortsIds = shorts.map(v=>v.id);
+      videoListShorts = shorts.map(v=>({id:v.id, titolo:v.titolo}));
       document.getElementById("shortCount").textContent = fmtNum(shorts.length);
       document.getElementById("shortViews").textContent = fmtNum(shorts.reduce((a,r)=>a+r.views,0));
       document.getElementById("shortAvg").textContent = fmtNum(avg(shorts.map(r=>r.views)));
@@ -851,6 +924,7 @@ async function loadChannelKpi(){
       document.getElementById("shortsVideosBody").innerHTML = `<tr><td colspan="5" class="empty-state">Impossibile leggere la playlist caricamenti del canale</td></tr>`;
     }
 
+    populateChartScopeSelect();
     await loadAnalytics(podcastIds, shortsIds);
   }catch(e){
     console.error("Errore YouTube:", e);
@@ -861,13 +935,39 @@ async function loadChannelKpi(){
 
 /* ===================== YOUTUBE ANALYTICS (durata visione, %, iscritti, commenti) ===================== */
 let analyticsSeries = { podcast: [], shorts: [] };
+let videoListPodcast = [];
+let videoListShorts = [];
+let analyticsVideoCache = {}; // cache per-video: id -> rows giornalieri
+let podcastVideoIdsGlobal = [];
+let shortsVideoIdsGlobal = [];
 function fmtMinSec(seconds){
   if(!seconds) return "—";
   const m = Math.floor(seconds/60), s = Math.round(seconds%60);
   return `${m}:${String(s).padStart(2,"0")}`;
 }
+function populateChartScopeSelect(){
+  const sel = document.getElementById("chartScopeSelect");
+  const current = sel.value;
+  let html = `<option value="agg">Confronto Podcast vs Shorts</option>`;
+  if(videoListPodcast.length){
+    html += `<optgroup label="🎙️ Video podcast">` +
+      videoListPodcast.map(v=>`<option value="pod:${v.id}">${v.titolo}</option>`).join("") + `</optgroup>`;
+  }
+  if(videoListShorts.length){
+    html += `<optgroup label="📱 Shorts">` +
+      videoListShorts.map(v=>`<option value="short:${v.id}">${v.titolo}</option>`).join("") + `</optgroup>`;
+  }
+  sel.innerHTML = html;
+  sel.value = current && [...sel.options].some(o=>o.value===current) ? current : "agg";
+}
+async function onChartScopeChange(){
+  await renderAnalyticsChart();
+}
 async function loadAnalytics(podcastIds, shortsIds){
   hideAlert("alertAnalyticsPod"); hideAlert("alertAnalyticsShort"); hideAlert("alertAnalyticsChart");
+  podcastVideoIdsGlobal = podcastIds;
+  shortsVideoIdsGlobal = shortsIds;
+  analyticsVideoCache = {};
   if(!HAS_APPS_SCRIPT){
     const msg = `⚠️ Statistiche di visione non disponibili — richiedono l'Apps Script con "YouTube Analytics API" abilitata (vedi guida setup).`;
     showAlert("alertAnalyticsPod","warn",msg);
@@ -899,36 +999,85 @@ async function loadAnalytics(podcastIds, shortsIds){
       callAppsScript("getAnalyticsTimeSeries", {videoIds: podcastIds}),
       callAppsScript("getAnalyticsTimeSeries", {videoIds: shortsIds}),
     ]);
-    analyticsSeries.podcast = podSeries.rows || [];
+    analyticsSeries.podcast = podSeries.rows || []; // righe giornaliere
     analyticsSeries.shorts = shortSeries.rows || [];
-    renderAnalyticsChart();
+    await renderAnalyticsChart();
   }catch(e){
     console.error("Errore Analytics serie:", e);
     showAlert("alertAnalyticsChart","warn",`⚠️ Andamento nel tempo non disponibile: ${e.message}`);
   }
 }
-let analyticsChartInstance = null;
-function renderAnalyticsChart(){
-  const metric = document.getElementById("chartMetricSelect").value;
-  // colonne righe: [mese, views, averageViewDuration, averageViewPercentage, subscribersGained, comments]
+
+// Aggrega righe giornaliere [giorno, views, avgDuration(sec), avgPercentage(%), subsGained, comments] in mesi
+function aggregateDailyToMonthly(rows, metric){
   const idxMap = { views:1, avgDuration:2, avgPercentage:3, subscribersGained:4, comments:5 };
   const idx = idxMap[metric];
-  const toValue = (row)=> metric==="avgDuration" ? Math.round((row[idx]||0)/60*10)/10 : (row[idx]||0);
+  const isWeighted = metric==="avgDuration" || metric==="avgPercentage";
+  const buckets = {};
+  rows.forEach(r=>{
+    const month = String(r[0]).slice(0,7); // YYYY-MM
+    if(!buckets[month]) buckets[month] = {sum:0, weight:0};
+    const val = r[idx] || 0;
+    const views = r[1] || 0;
+    if(isWeighted){ buckets[month].sum += val*Math.max(views,1); buckets[month].weight += Math.max(views,1); }
+    else { buckets[month].sum += val; buckets[month].weight = 1; }
+  });
+  return Object.entries(buckets).map(([month,b])=>{
+    let value = isWeighted ? (b.weight? b.sum/b.weight : 0) : b.sum;
+    if(metric==="avgDuration") value = Math.round(value/60*10)/10; // secondi -> minuti, 1 decimale
+    if(metric==="avgPercentage") value = Math.round(value*10)/10;
+    return [month, value];
+  }).sort((a,b)=> a[0]<b[0] ? -1 : 1);
+}
 
-  const months = [...new Set([...analyticsSeries.podcast, ...analyticsSeries.shorts].map(r=>r[0]))].sort();
-  const podMap = Object.fromEntries(analyticsSeries.podcast.map(r=>[r[0], toValue(r)]));
-  const shortMap = Object.fromEntries(analyticsSeries.shorts.map(r=>[r[0], toValue(r)]));
+let analyticsChartInstance = null;
+async function renderAnalyticsChart(){
+  const metric = document.getElementById("chartMetricSelect").value;
+  const scope = document.getElementById("chartScopeSelect").value;
 
+  if(scope === "agg"){
+    const podMonthly = aggregateDailyToMonthly(analyticsSeries.podcast, metric);
+    const shortMonthly = aggregateDailyToMonthly(analyticsSeries.shorts, metric);
+    const months = [...new Set([...podMonthly, ...shortMonthly].map(r=>r[0]))].sort();
+    const podMap = Object.fromEntries(podMonthly);
+    const shortMap = Object.fromEntries(shortMonthly);
+    drawAnalyticsChart(months, [
+      { label:"Podcast", data: months.map(m=>podMap[m]??null), color:"#6FA3D8" },
+      { label:"Shorts", data: months.map(m=>shortMap[m]??null), color:"#F0A0C4" },
+    ]);
+    return;
+  }
+
+  // Scope = singolo video (formato "pod:ID" oppure "short:ID")
+  const [group, videoId] = scope.split(":");
+  const label = (group==="pod" ? videoListPodcast : videoListShorts).find(v=>v.id===videoId);
+  hideAlert("alertAnalyticsChart");
+  try{
+    if(!analyticsVideoCache[videoId]){
+      const resp = await callAppsScript("getAnalyticsTimeSeries", {videoIds:[videoId]});
+      analyticsVideoCache[videoId] = resp.rows || [];
+    }
+    const monthly = aggregateDailyToMonthly(analyticsVideoCache[videoId], metric);
+    const months = monthly.map(r=>r[0]);
+    const valMap = Object.fromEntries(monthly);
+    drawAnalyticsChart(months, [
+      { label: label ? label.titolo : videoId, data: months.map(m=>valMap[m]??null), color: group==="pod" ? "#6FA3D8" : "#F0A0C4" },
+    ]);
+  }catch(e){
+    showAlert("alertAnalyticsChart","warn",`⚠️ Andamento non disponibile per questo video: ${e.message}`);
+  }
+}
+function drawAnalyticsChart(months, datasets){
   const ctx = document.getElementById("chartAnalytics").getContext("2d");
   if(analyticsChartInstance) analyticsChartInstance.destroy();
   analyticsChartInstance = new Chart(ctx, {
     type: "line",
     data: {
       labels: months,
-      datasets: [
-        { label:"Podcast", data: months.map(m=>podMap[m]??null), borderColor:"#6FA3D8", backgroundColor:"rgba(111,163,216,.12)", tension:.3, spanGaps:true },
-        { label:"Shorts", data: months.map(m=>shortMap[m]??null), borderColor:"#F0A0C4", backgroundColor:"rgba(240,160,196,.12)", tension:.3, spanGaps:true },
-      ]
+      datasets: datasets.map(ds=>({
+        label: ds.label, data: ds.data, borderColor: ds.color,
+        backgroundColor: ds.color+"20", tension:.3, spanGaps:true
+      }))
     },
     options: {
       responsive:true, maintainAspectRatio:false,
@@ -1023,7 +1172,8 @@ async function addEquipment(){
 }
 
 let calendarEvents = [];
-let weekOffset = 0;
+let fullCalendarInstance = null;
+let editingEventId = null;
 
 function populateEpisodeDropdown(){
   const sel = document.getElementById("evEpisodio");
@@ -1048,14 +1198,55 @@ function onEpisodeSelectChange(){
   document.getElementById("evNuovaPuntataWrap").style.display = val === "__new__" ? "flex" : "none";
 }
 
-async function addCalendarEventFromForm(){
+/* ---------- Modal creazione / modifica evento ---------- */
+function openEventModal(ev, prefillDateStr){
+  editingEventId = ev ? ev.id : null;
+  document.getElementById("eventModalTitle").textContent = ev ? "Modifica evento" : "Nuovo evento";
+  document.getElementById("evTipo").parentElement.parentElement.style.display = ev ? "none" : "grid";
+  document.getElementById("evEpisodioWrap").style.display = "none";
+  document.getElementById("evAnnullaBtn").style.display = ev ? "inline-block" : "none";
+  document.getElementById("evEliminaBtn").style.display = ev ? "inline-block" : "none";
+
+  if(ev){
+    const d = new Date(ev.inizio);
+    document.getElementById("evData").value = d.toISOString().slice(0,10);
+    document.getElementById("evOraInizio").value = ev.tuttoIlGiorno ? "" : fmtTime(d);
+    document.getElementById("evOraFine").value = ev.tuttoIlGiorno ? "" : fmtTime(new Date(ev.fine));
+    document.getElementById("evTitoloManuale").value = ev.titolo || "";
+    const noteOnly = (ev.descrizione||"").replace(/^\[EP:[^\]]+\]\n?/, "");
+    document.getElementById("evNote").value = noteOnly;
+  } else {
+    ["evData","evOraInizio","evOraFine","evTitoloManuale","evNote","evNuovoTitolo"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("evTipo").value = "Altro";
+    if(prefillDateStr) document.getElementById("evData").value = prefillDateStr.slice(0,10);
+  }
+  document.getElementById("eventModalOverlay").classList.add("show");
+}
+function closeEventModal(){
+  document.getElementById("eventModalOverlay").classList.remove("show");
+  editingEventId = null;
+}
+async function saveEventFromModal(){
   const data = document.getElementById("evData").value;
   if(!data){ alert("La data è obbligatoria"); return; }
   const oraInizio = document.getElementById("evOraInizio").value;
   const oraFine = document.getElementById("evOraFine").value;
-  const tipo = document.getElementById("evTipo").value;
   const note = document.getElementById("evNote").value.trim();
+  const titoloManuale = document.getElementById("evTitoloManuale").value.trim();
 
+  if(editingEventId){
+    try{
+      const payload = { eventId: editingEventId, data, oraInizio, oraFine, note };
+      if(titoloManuale) payload.titolo = titoloManuale;
+      await callAppsScript("updateCalendarEvent", payload);
+      closeEventModal();
+      await loadCalendario();
+      await loadPalinsesto();
+    }catch(e){ alert("Errore salvataggio: "+e.message); }
+    return;
+  }
+
+  const tipo = document.getElementById("evTipo").value;
   let codPuntata = "", titoloExtra = "";
   if(tipo === "Registrazione"){
     const epSel = document.getElementById("evEpisodio").value;
@@ -1071,27 +1262,41 @@ async function addCalendarEventFromForm(){
       titoloExtra = ep ? ep["Titolo"] : "";
     }
   }
-
   try{
-    await callAppsScript("addCalendarEvent", { data, oraInizio, oraFine, tipo, codPuntata, titoloExtra, note });
-    ["evData","evOraInizio","evOraFine","evNote","evNuovoTitolo"].forEach(id=>document.getElementById(id).value="");
-    document.getElementById("evTipo").value = "Altro";
-    onEventTypeChange();
-    document.getElementById("formEvento").style.display="none";
+    await callAppsScript("addCalendarEvent", { data, oraInizio, oraFine, tipo, codPuntata, titoloExtra: titoloManuale||titoloExtra, note });
+    closeEventModal();
     await loadCalendario();
     await loadPalinsesto();
   }catch(e){ alert("Errore salvataggio evento: "+e.message); }
 }
-
-async function cancelEvent(eventId){
+async function cancelEventFromModal(){
+  if(!editingEventId) return;
   if(!confirm("Segnare questo evento come annullato?")) return;
   try{
-    await callAppsScript("cancelCalendarEvent", {eventId});
+    await callAppsScript("cancelCalendarEvent", {eventId: editingEventId});
+    closeEventModal();
     await loadCalendario();
     await loadPalinsesto();
   }catch(e){ alert("Errore: "+e.message); }
 }
-async function deleteEvent(eventId, titolo){
+async function deleteEventFromModal(){
+  if(!editingEventId) return;
+  if(!confirm("Eliminare definitivamente questo evento? L'azione non è reversibile.")) return;
+  try{
+    await callAppsScript("deleteCalendarEvent", {eventId: editingEventId});
+    closeEventModal();
+    await loadCalendario();
+    await loadPalinsesto();
+  }catch(e){ alert("Errore: "+e.message); }
+}
+
+/* ---------- Azioni rapide dalla tabella (senza aprire il modal) ---------- */
+async function cancelEvent(eventId){
+  if(!confirm("Segnare questo evento come annullato?")) return;
+  try{ await callAppsScript("cancelCalendarEvent", {eventId}); await loadCalendario(); await loadPalinsesto(); }
+  catch(e){ alert("Errore: "+e.message); }
+}
+async function deleteEvent(eventId){
   await callAppsScript("deleteCalendarEvent", {eventId});
   await loadCalendario();
   await loadPalinsesto();
@@ -1110,12 +1315,55 @@ async function updateEventField(eventId, field, value){
 
 function fmtWhen(ev){
   const d = new Date(ev.inizio);
-  return ev.tuttoIlGiorno
-    ? d.toLocaleDateString("it-IT",{day:"2-digit",month:"short"}) + " (tutto il giorno)"
-    : d.toLocaleString("it-IT",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});
+  return ev.tuttoIlGiorno ? fmtDate(d) + " (tutto il giorno)" : fmtDateTime(d);
 }
 function isRecEvent(ev){ return (ev.titolo||"").toLowerCase().includes(CONFIG.ON_AIR_KEYWORD); }
 function isCancelled(ev){ return (ev.titolo||"").toUpperCase().startsWith("ANNULLATA"); }
+
+/* ---------- FullCalendar ---------- */
+function initFullCalendar(){
+  const el = document.getElementById("fullCalendarEl");
+  fullCalendarInstance = new FullCalendar.Calendar(el, {
+    locale: "it",
+    firstDay: 1,
+    initialView: "dayGridMonth",
+    headerToolbar: { left: "prev,next today", center: "title", right: "dayGridMonth,timeGridWeek,timeGridDay" },
+    editable: true,
+    eventTimeFormat: { hour: "2-digit", minute: "2-digit", hour12: false, meridiem: false },
+    slotLabelFormat: { hour: "2-digit", minute: "2-digit", hour12: false, meridiem: false },
+    height: 640,
+    events: (info, successCb) => successCb(buildFullCalendarEvents()),
+    eventDrop: (info) => onEventDragOrResize(info.event),
+    eventResize: (info) => onEventDragOrResize(info.event),
+    dateClick: (info) => openEventModal(null, info.dateStr),
+    eventClick: (info) => { const ev = calendarEvents.find(e=>e.id===info.event.id); if(ev) openEventModal(ev); },
+  });
+  fullCalendarInstance.render();
+}
+function buildFullCalendarEvents(){
+  return calendarEvents.map(ev=>({
+    id: ev.id,
+    title: ev.titolo,
+    start: ev.inizio,
+    end: ev.fine,
+    allDay: ev.tuttoIlGiorno,
+    backgroundColor: isCancelled(ev) ? "#8B8894" : (isRecEvent(ev) ? "#E2705F" : "#6FA3D8"),
+    borderColor: "transparent",
+    classNames: isCancelled(ev) ? ["ev-cancelled"] : []
+  }));
+}
+async function onEventDragOrResize(fcEvent){
+  const dataStr = fcEvent.start.toISOString().slice(0,10);
+  const oraInizio = fcEvent.allDay ? "" : fmtTime(fcEvent.start);
+  const oraFine = (!fcEvent.allDay && fcEvent.end) ? fmtTime(fcEvent.end) : "";
+  try{
+    await callAppsScript("updateCalendarEvent", {eventId: fcEvent.id, data: dataStr, oraInizio, oraFine});
+    await loadCalendario();
+  }catch(e){
+    alert("Errore spostamento evento: "+e.message);
+    if(fullCalendarInstance) fullCalendarInstance.refetchEvents();
+  }
+}
 
 async function loadCalendario(){
   hideAlert("alertCalendario"); setWarnDot("warnCalendario", false);
@@ -1125,13 +1373,13 @@ async function loadCalendario(){
     document.getElementById("calendarioBody").innerHTML = `<tr><td colspan="4" class="empty-state">Calendario non configurato</td></tr>`;
     document.getElementById("homeCalendarBody").innerHTML = `<tr><td colspan="2" class="empty-state">Calendario non configurato</td></tr>`;
     setOnAir(false, "Calendario non configurato", "");
-    renderWeekGrid(); renderHighlights();
+    renderHighlights();
     return;
   }
   try{
     const now = new Date();
-    const timeMin = new Date(now); timeMin.setDate(timeMin.getDate()-7);
-    const timeMax = new Date(now); timeMax.setDate(timeMax.getDate()+45);
+    const timeMin = new Date(now); timeMin.setDate(timeMin.getDate()-365);
+    const timeMax = new Date(now); timeMax.setDate(timeMax.getDate()+180);
     const resp = await callAppsScript("getEvents", {timeMin: timeMin.toISOString(), timeMax: timeMax.toISOString()});
     calendarEvents = resp || [];
 
@@ -1140,9 +1388,11 @@ async function loadCalendario(){
       return upcoming.length ? upcoming.map(ev=>`<tr><td>${fmtWhen(ev)}</td><td>${ev.titolo}</td></tr>`).join("") : `<tr><td colspan="2" class="empty-state">Nessun evento in programma</td></tr>`;
     })();
 
+    if(!fullCalendarInstance) initFullCalendar();
+    else fullCalendarInstance.refetchEvents();
+
     renderCalendarioTable();
     checkOnAirAndNext();
-    renderWeekGrid();
     renderHighlights();
   }catch(e){
     console.error("Errore Google Calendar:", e);
@@ -1156,11 +1406,12 @@ async function loadCalendario(){
 function renderCalendarioTable(){
   tableState.calendario.search = document.getElementById("calendarioSearch").value;
   tableState.calendario.filters["_tipo"] = document.getElementById("calendarioFilterTipo").value;
+  const quando = document.getElementById("calendarioFilterQuando").value;
 
   const now = new Date();
-  const enriched = calendarEvents
-    .filter(ev=>new Date(ev.inizio) >= now)
-    .map(ev=>({...ev, _tipo: isRecEvent(ev) ? "registrazione" : "altro"}));
+  let enriched = calendarEvents.map(ev=>({...ev, _tipo: isRecEvent(ev) ? "registrazione" : "altro"}));
+  if(quando==="futuri") enriched = enriched.filter(ev=>new Date(ev.inizio) >= now);
+  if(quando==="passati") enriched = enriched.filter(ev=>new Date(ev.inizio) < now);
 
   let rows = applyFilters(enriched, "calendario", ["titolo"]);
   document.getElementById("calendarioCount").textContent = `${rows.length} di ${enriched.length}`;
@@ -1169,7 +1420,7 @@ function renderCalendarioTable(){
   tbody.innerHTML = rows.length ? rows.map(ev=>{
     const d = new Date(ev.inizio);
     const dateVal = d.toISOString().slice(0,10);
-    const timeVal = ev.tuttoIlGiorno ? "" : d.toISOString().slice(11,16);
+    const timeVal = ev.tuttoIlGiorno ? "" : fmtTime(d);
     const idEsc = ev.id.replace(/'/g,"\\'");
     return `<tr>
       <td>
@@ -1210,7 +1461,7 @@ function checkOnAirAndNext(){
     const next = future[0];
     const cod = extractCodFromDescription(next.descrizione) || "—";
     const ep = palinsestoData.find(r=>r["Cod_puntata"]===cod);
-    const when = new Date(next.inizio).toLocaleString("it-IT",{weekday:"long",day:"2-digit",month:"long",hour:"2-digit",minute:"2-digit"});
+    const when = fmtDateTime(new Date(next.inizio));
     setOnAir(false, `Nessuna registrazione in corso — prossima: ${cod}`, `${when} · Ospiti: ${ep?(ep["Ospiti esterni"]||"—"):"—"}`);
   } else {
     setOnAir(false, "Nessuna registrazione schedulata", "");
@@ -1246,32 +1497,20 @@ function renderHighlights(){
   document.getElementById("hlWeekCount").textContent = weekCount;
 }
 
-function renderWeekGrid(){
-  const grid = document.getElementById("weekGrid");
-  const today = new Date(); today.setHours(0,0,0,0);
-  const monday = new Date(today);
-  const dayNum = (monday.getDay()+6)%7;
-  monday.setDate(monday.getDate() - dayNum + weekOffset*7);
-
-  let html = "";
-  for(let i=0;i<7;i++){
-    const day = new Date(monday); day.setDate(day.getDate()+i);
-    const dayEnd = new Date(day); dayEnd.setDate(dayEnd.getDate()+1);
-    const isToday = day.getTime() === today.getTime();
-    const dayEvents = calendarEvents.filter(ev=>{ const d=new Date(ev.inizio); return d>=day && d<dayEnd; });
-    html += `<div class="week-day ${isToday?'is-today':''}">
-      <div class="week-day-head">${day.toLocaleDateString("it-IT",{weekday:"short"})}<br><b>${day.getDate()}</b></div>
-      ${dayEvents.map(ev=>{
-        const cls = isCancelled(ev) ? "ev-cancel" : (isRecEvent(ev) ? "ev-rec" : "ev-other");
-        return `<div class="week-event ${cls}">${ev.titolo}</div>`;
-      }).join("") || ''}
-    </div>`;
-  }
-  grid.innerHTML = html;
-}
-function shiftWeek(delta){ weekOffset += delta; renderWeekGrid(); }
-
 let ospitiData = [];
+function populateEpisodeMultiSelect(selectId){
+  const sel = document.getElementById(selectId);
+  if(!sel) return;
+  const current = [...sel.selectedOptions].map(o=>o.value);
+  sel.innerHTML = palinsestoData.map(r=>`<option value="${r["Cod_puntata"]}">${r["Cod_puntata"]} — ${r["Titolo"]||"(senza titolo)"}</option>`).join("");
+  [...sel.options].forEach(o=>{ if(current.includes(o.value)) o.selected = true; });
+}
+function episodeMultiSelectHtml(selectedCsv, onChangeExpr){
+  const selected = (selectedCsv||"").split(",").map(s=>s.trim()).filter(Boolean);
+  return `<select multiple size="3" class="note-input" ${HAS_APPS_SCRIPT?"":"disabled"} onchange="${onChangeExpr}">` +
+    palinsestoData.map(r=>`<option value="${r["Cod_puntata"]}" ${selected.includes(r["Cod_puntata"])?"selected":""}>${r["Cod_puntata"]} — ${r["Titolo"]||"(senza titolo)"}</option>`).join("") +
+    `</select>`;
+}
 async function loadOspiti(){
   hideAlert("alertOspiti"); setWarnDot("warnOspiti", false);
   try{ ospitiData = await fetchTab(CONFIG.TABS.ospiti); }
@@ -1283,7 +1522,9 @@ async function loadOspiti(){
     document.getElementById("kpiDaChiamare").textContent = "—";
     throw e;
   }
-  populateEpisodeSelect("osPuntata");
+  populateEpisodeMultiSelect("osPuntata");
+  populateGuestMultiSelect("epOspiti");
+  renderEpisodiTable(); // aggiorna il multi-select ospiti nella tabella Episodi con i dati freschi
   populateSelectOptions("ospitiFilterStato", ospitiData.map(r=>r["Stato"]||"Da chiamare"), tableState.ospiti.filters["Stato"]);
   const daChiamare = ospitiData.filter(r=>{ const s=(r["Stato"]||"").toLowerCase(); return s.includes("chiamare")||s===""; }).length;
   document.getElementById("kpiDaChiamare").textContent = fmtNum(daChiamare);
@@ -1296,11 +1537,9 @@ function renderOspitiTable(){
   const tbody = document.getElementById("ospitiBody");
   if(!ospitiData.length){ tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Tab vuota</td></tr>`; return; }
 
-  const rows = applyFilters(ospitiData, "ospiti", ["Nome","Contatti","Temi"]);
+  const rows = applyFilters(ospitiData, "ospiti", ["Nome","Contatti","Temi","Cod_puntata"]);
   document.getElementById("ospitiCount").textContent = `${rows.length} di ${ospitiData.length}`;
 
-  const episodeOptionsHtml = (selected)=> `<option value="">— nessuna —</option>` +
-    palinsestoData.map(r=>`<option value="${r["Cod_puntata"]}" ${r["Cod_puntata"]===selected?"selected":""}>${r["Cod_puntata"]} — ${r["Titolo"]||"(senza titolo)"}</option>`).join("");
   const statoOptionsHtml = (selected)=> ["Da chiamare","Chiamato","Confermato","Non disponibile"]
     .map(o=>`<option ${o===selected?"selected":""}>${o}</option>`).join("");
 
@@ -1308,24 +1547,17 @@ function renderOspitiTable(){
     const stato = r["Stato"] || "Da chiamare";
     const nomeEsc = (r["Nome"]||"").replace(/'/g,"\\'");
     const cod = r["Cod_puntata"] || "";
+    const onChangeExpr = `updateGuestField('${nomeEsc}','Cod_puntata', [...this.selectedOptions].map(o=>o.value).join(', '))`;
     return `<tr>
       <td><input class="note-input" value="${(r["Nome"]||"").replace(/"/g,"&quot;")}" onchange="updateGuestField('${nomeEsc}','Nome',this.value)"></td>
       <td><input class="note-input" value="${(r["Contatti"]||"").replace(/"/g,"&quot;")}" onchange="updateGuestField('${nomeEsc}','Contatti',this.value)"></td>
       <td><input class="note-input" value="${(r["Temi"]||"").replace(/"/g,"&quot;")}" onchange="updateGuestField('${nomeEsc}','Temi',this.value)"></td>
-      <td><select class="note-input" ${HAS_APPS_SCRIPT?"":"disabled"} onchange="updateGuestField('${nomeEsc}','Cod_puntata', this.value)">${episodeOptionsHtml(cod)}</select></td>
+      <td>${episodeMultiSelectHtml(cod, onChangeExpr)}</td>
       <td><select class="note-input" ${HAS_APPS_SCRIPT?"":"disabled"} onchange="updateGuestField('${nomeEsc}','Stato', this.value)">${statoOptionsHtml(stato)}</select></td>
       <td><input class="note-input" value="${(r["Note"]||"").replace(/"/g,"&quot;")}" onchange="updateGuestField('${nomeEsc}','Note',this.value)" placeholder="Note..."></td>
       <td><button class="icon-btn danger" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="confirmDelete('${nomeEsc}', ()=>deleteGuest('${nomeEsc}'))">🗑</button></td>
     </tr>`;
   }).join("") : `<tr><td colspan="7" class="empty-state">Nessun ospite trovato</td></tr>`;
-}
-function populateEpisodeSelect(selectId){
-  const sel = document.getElementById(selectId);
-  if(!sel) return;
-  const current = sel.value;
-  sel.innerHTML = `<option value="">— nessuna —</option>` +
-    palinsestoData.map(r=>`<option value="${r["Cod_puntata"]}">${r["Cod_puntata"]} — ${r["Titolo"]||"(senza titolo)"}</option>`).join("");
-  sel.value = current || "";
 }
 async function updateGuestField(nome, campo, valore){
   try{ await callAppsScript("updateGuestField", {nomeOriginale: nome, [campo]: valore}); await loadOspiti(); }
@@ -1336,18 +1568,19 @@ async function deleteGuest(nome){
   await loadOspiti();
 }
 async function addGuest(){
+  const puntateSel = [...document.getElementById("osPuntata").selectedOptions].map(o=>o.value);
   const data = {
     nome: document.getElementById("osNome").value.trim(),
     contatti: document.getElementById("osContatti").value.trim(),
     temi: document.getElementById("osTemi").value.trim(),
     stato: document.getElementById("osStato").value,
-    codPuntata: document.getElementById("osPuntata").value
+    codPuntata: puntateSel.join(", ")
   };
   if(!data.nome){ alert("Il nome è obbligatorio"); return; }
   try{
     await callAppsScript("addGuest", data);
     ["osNome","osContatti","osTemi"].forEach(id=>document.getElementById(id).value="");
-    document.getElementById("osPuntata").value = "";
+    document.getElementById("osPuntata").selectedIndex = -1;
     document.getElementById("formOspite").style.display="none";
     await loadOspiti();
   }catch(e){ alert("Errore: "+e.message); }
@@ -1470,7 +1703,7 @@ async function refreshAll(){
     loadChannelKpi(), loadAttrezzatura(), loadCalendario(), loadOspiti(), loadTask()
   ]);
 
-  document.getElementById("lastUpdate").textContent = "Aggiornato: " + new Date().toLocaleTimeString("it-IT");
+  document.getElementById("lastUpdate").textContent = "Aggiornato: " + fmtTime(new Date());
   const falliti = results.filter(r=>r.status==="rejected").length;
   document.getElementById("connStatus").innerHTML = falliti===0
     ? '<span class="dot-ok">●</span> Tutte le fonti collegate'
