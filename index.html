@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultimo Shampoo Podcast — Workspace</title>
+<title>Ultimo Shampoo Podcast — Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <style>
   :root{
     --bg:#FAFAF9; --panel:#FFFFFF; --panel-alt:#F3F1F6;
@@ -40,6 +41,8 @@
   .nav-item .ic{font-size:15px;width:18px;text-align:center;}
   .nav-item .warn-dot{width:6px;height:6px;border-radius:50%;background:var(--bad);margin-left:auto;}
   .sidebar-status{margin-top:22px;padding:10px 12px;border-radius:9px;background:var(--panel-alt);font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--text-muted);line-height:1.7;}
+  .sidebar-actions{margin-top:4px;}
+  .sidebar-lastupdate{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);text-align:center;margin-top:10px;}
   .dot-ok{color:var(--ok);} .dot-bad{color:var(--bad);}
 
   main{flex:1;padding:26px 30px 80px;max-width:1220px;}
@@ -75,8 +78,14 @@
   .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px;}
   .kpi-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 15px 13px;position:relative;}
   .kpi-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--kpi-color,var(--purple));border-radius:12px 12px 0 0;}
-  .kpi-card.linkable{cursor:pointer;}
-  .kpi-card.linkable:hover{border-color:var(--purple);}
+  .kpi-card.linkable{cursor:pointer;position:relative;}
+  .kpi-card.linkable:hover{border-color:var(--purple);box-shadow:0 2px 10px rgba(180,142,222,.18);}
+  .kpi-card.linkable::after{
+    content:"Vai alla pagina →"; position:absolute; bottom:10px; right:15px;
+    font-family:'IBM Plex Mono',monospace; font-size:9.5px; color:var(--purple);
+    opacity:0; transition:opacity .15s;
+  }
+  .kpi-card.linkable:hover::after{opacity:1;}
   .kpi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;}
   .kpi-name{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);}
   .kpi-value{font-family:'IBM Plex Mono',monospace;font-size:27px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1;}
@@ -98,6 +107,31 @@
   .badge.b-red{background:rgba(226,112,95,.14);color:#B7442F;}
 
   .icon-btn{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:5px 9px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;}
+  .icon-btn.danger:hover{border-color:var(--bad);color:var(--bad);}
+
+  .filter-bar{
+    display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+    padding:12px 16px; background:var(--panel-alt); border-bottom:1px solid var(--border);
+  }
+  .filter-bar input[type=text]{
+    flex:1; min-width:160px; background:var(--panel); border:1px solid var(--border);
+    border-radius:7px; padding:7px 10px; font-family:'Inter',sans-serif; font-size:12.5px; color:var(--text-primary);
+  }
+  .filter-bar select{
+    background:var(--panel); border:1px solid var(--border); border-radius:7px;
+    padding:7px 9px; font-family:'Inter',sans-serif; font-size:12.5px; color:var(--text-primary);
+  }
+  .filter-bar .filter-count{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--text-muted);white-space:nowrap;}
+  th.sortable{cursor:pointer; user-select:none;}
+  th.sortable:hover{color:var(--purple);}
+  th.sortable .sort-ind{opacity:.5; margin-left:3px;}
+  th.sortable.active .sort-ind{opacity:1; color:var(--purple);}
+
+  .chart-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:20px;}
+  .chart-card h4{font-family:'Fraunces',serif;font-size:14px;margin:0 0 12px;font-weight:600;}
+  .chart-card canvas{max-height:240px;}
+  .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px;}
+  @media (max-width:900px){ .chart-grid{grid-template-columns:1fr;} }
   .icon-btn:hover{border-color:var(--purple);color:var(--purple);}
   .icon-btn:disabled{opacity:.4;cursor:not-allowed;}
 
@@ -163,15 +197,20 @@
 
 <nav class="sidebar">
   <div class="sidebar-logo-wrap"><img id="logoImg" alt="Ultimo Shampoo Podcast"><div class="sidebar-title">Ultimo <span>Shampoo</span></div></div>
-  <div class="sidebar-sub">WORKSPACE PETTINATO</div>
+  <div class="sidebar-sub">DASHBOARD DI PRODUZIONE</div>
   <div class="nav-item active" data-page="home"><span class="ic">🏠</span> Home</div>
   <div class="nav-item" data-page="episodi"><span class="ic">🎬</span> Episodi<span class="warn-dot" id="warnEpisodi" style="display:none"></span></div>
   <div class="nav-item" data-page="task"><span class="ic">✅</span> Task<span class="warn-dot" id="warnTask" style="display:none"></span></div>
-  <div class="nav-item" data-page="kpi-canale"><span class="ic">📈</span> KPI Youtube<span class="warn-dot" id="warnYoutube" style="display:none"></span></div>
+  <div class="nav-item" data-page="kpi-canale"><span class="ic">📈</span> KPI Canale<span class="warn-dot" id="warnYoutube" style="display:none"></span></div>
   <div class="nav-item" data-page="attrezzatura"><span class="ic">🎥</span> Attrezzatura<span class="warn-dot" id="warnAttrezzatura" style="display:none"></span></div>
   <div class="nav-item" data-page="calendario"><span class="ic">📅</span> Calendario<span class="warn-dot" id="warnCalendario" style="display:none"></span></div>
   <div class="nav-item" data-page="ospiti"><span class="ic">👤</span> Ospiti<span class="warn-dot" id="warnOspiti" style="display:none"></span></div>
   <div class="sidebar-status" id="connStatus">Verifica connessioni...</div>
+  <div class="sidebar-actions">
+    <button class="btn-ghost btn-small" style="width:100%;margin-top:8px" onclick="refreshAll()">↻ Aggiorna tutto</button>
+    <button class="btn-ghost btn-small" style="width:100%;margin-top:6px" onclick="testConnection()">🔍 Diagnostica</button>
+    <div class="sidebar-lastupdate" id="lastUpdate">—</div>
+  </div>
 </nav>
 
 <main>
@@ -180,7 +219,6 @@
     <div class="strip" id="onAirStrip">
       <div class="strip-top">
         <div class="strip-left"><div class="rec-dot"></div><span class="strip-label" id="onAirLabel">Verifica calendario...</span></div>
-        <div class="strip-right"><span id="lastUpdate">—</span><button class="btn-ghost btn-small" onclick="refreshAll()">↻ Aggiorna</button><button class="btn-ghost btn-small" onclick="testConnection()">🔍 Diagnostica</button></div>
       </div>
       <div class="strip-detail" id="onAirDetail"></div>
     </div>
@@ -193,7 +231,7 @@
     <div class="kpi-grid">
       <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Episodi totali</span></div><div class="kpi-value" id="kpiEpisodiTotali">—</div></div>
       <div class="kpi-card" style="--kpi-color:#B48EDE"><div class="kpi-top"><span class="kpi-name">Iscritti canale</span></div><div class="kpi-value" id="kpiIscritti">—</div></div>
-      <div class="kpi-card" style="--kpi-color:#F0A0C4"><div class="kpi-top"><span class="kpi-name">Ospiti da chiamare</span></div><div class="kpi-value" id="kpiDaChiamare">—</div></div>
+      <div class="kpi-card linkable" style="--kpi-color:#F0A0C4" onclick="goToPage('ospiti')"><div class="kpi-top"><span class="kpi-name">Ospiti da chiamare</span></div><div class="kpi-value" id="kpiDaChiamare">—</div></div>
       <div class="kpi-card linkable" style="--kpi-color:#EFA75E" onclick="goToPage('task')"><div class="kpi-top"><span class="kpi-name">Task in sospeso</span></div><div class="kpi-value" id="kpiTaskSospesi">—</div></div>
     </div>
 
@@ -220,9 +258,22 @@
       <button class="btn" onclick="addEpisode()">Salva episodio</button>
     </div>
 
-    <div class="table-wrap"><div class="table-scroll">
-      <table><thead><tr><th>Cod.</th><th>Titolo</th><th>Ospite</th><th>Stato</th><th>Data</th><th>Views</th><th>Note</th></tr></thead>
-      <tbody id="episodiBody"><tr><td colspan="7" class="empty-state">Caricamento...</td></tr></tbody></table>
+    <div class="table-wrap">
+      <div class="filter-bar">
+        <input type="text" id="episodiSearch" placeholder="🔍 Cerca per titolo, ospite, codice..." oninput="renderEpisodiTable()">
+        <select id="episodiFilterStato" onchange="renderEpisodiTable()"><option value="">Tutti gli stati</option></select>
+        <span class="filter-count" id="episodiCount"></span>
+      </div>
+      <div class="table-scroll">
+      <table><thead><tr>
+        <th class="sortable" data-key="Cod_puntata" onclick="setSort('episodi','Cod_puntata')">Cod. <span class="sort-ind">↕</span></th>
+        <th class="sortable" data-key="Titolo" onclick="setSort('episodi','Titolo')">Titolo <span class="sort-ind">↕</span></th>
+        <th>Ospite</th>
+        <th class="sortable" data-key="_stato" onclick="setSort('episodi','_stato')">Stato <span class="sort-ind">↕</span></th>
+        <th class="sortable" data-key="Data pubblicazione" onclick="setSort('episodi','Data pubblicazione')">Data <span class="sort-ind">↕</span></th>
+        <th>Views</th><th>Note</th><th></th>
+      </tr></thead>
+      <tbody id="episodiBody"><tr><td colspan="8" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
   </section>
 
@@ -230,6 +281,9 @@
     <div class="section-label"><span class="tag">TASK</span><h2>Task per episodio</h2><div class="line"></div></div>
     <div id="alertTask" class="alert-box error hidden"></div>
     <p class="subtitle">Da tab "Checklist_puntate", collegata a ogni episodio tramite Cod_puntata. Per un episodio con Data pubblicazione impostata, puoi generare automaticamente il flusso standard di post-produzione.</p>
+    <div class="filter-bar" style="border-radius:10px;margin-bottom:16px;">
+      <input type="text" id="taskSearch" placeholder="🔍 Cerca attività..." oninput="renderTaskGroups()">
+    </div>
     <div id="taskGroups"><div class="empty-state">Caricamento...</div></div>
   </section>
 
@@ -247,11 +301,18 @@
     </div>
 
     <div class="section-label"><span class="tag">🎙️</span><h2>Video podcast ufficiali</h2><div class="line"></div></div>
+    <div id="alertAnalyticsPod" class="alert-box warn hidden"></div>
     <div class="kpi-grid">
       <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Episodi pubblicati</span></div><div class="kpi-value" id="podEpisodi">—</div></div>
       <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Views totali</span></div><div class="kpi-value" id="podViews">—</div></div>
       <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Views medie</span></div><div class="kpi-value" id="podAvg">—</div></div>
       <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Like medi</span></div><div class="kpi-value" id="podAvgLike">—</div></div>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi-card" style="--kpi-color:#3D77AD"><div class="kpi-top"><span class="kpi-name">Durata media visione</span></div><div class="kpi-value" id="podWatchMin">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#3D77AD"><div class="kpi-top"><span class="kpi-name">% media visione</span></div><div class="kpi-value" id="podWatchPct">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#3D77AD"><div class="kpi-top"><span class="kpi-name">Iscritti acquisiti</span></div><div class="kpi-value" id="podSubsGained">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#3D77AD"><div class="kpi-top"><span class="kpi-name">Commenti totali</span></div><div class="kpi-value" id="podComments">—</div></div>
     </div>
     <div class="table-wrap"><div class="table-scroll">
       <table><thead><tr><th>#</th><th>Titolo</th><th>Views</th><th>Like</th><th>Commenti</th></tr></thead>
@@ -259,16 +320,35 @@
     </div></div>
 
     <div class="section-label"><span class="tag">📱</span><h2>Shorts</h2><div class="line"></div></div>
+    <div id="alertAnalyticsShort" class="alert-box warn hidden"></div>
     <div class="kpi-grid">
       <div class="kpi-card" style="--kpi-color:#F0A0C4"><div class="kpi-top"><span class="kpi-name">Shorts pubblicati</span></div><div class="kpi-value" id="shortCount">—</div></div>
       <div class="kpi-card" style="--kpi-color:#F0A0C4"><div class="kpi-top"><span class="kpi-name">Views totali</span></div><div class="kpi-value" id="shortViews">—</div></div>
       <div class="kpi-card" style="--kpi-color:#F0A0C4"><div class="kpi-top"><span class="kpi-name">Views medie</span></div><div class="kpi-value" id="shortAvg">—</div></div>
       <div class="kpi-card" style="--kpi-color:#F0A0C4"><div class="kpi-top"><span class="kpi-name">Like medi</span></div><div class="kpi-value" id="shortAvgLike">—</div></div>
     </div>
+    <div class="kpi-grid">
+      <div class="kpi-card" style="--kpi-color:#C15E8D"><div class="kpi-top"><span class="kpi-name">Durata media visione</span></div><div class="kpi-value" id="shortWatchMin">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#C15E8D"><div class="kpi-top"><span class="kpi-name">% media visione</span></div><div class="kpi-value" id="shortWatchPct">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#C15E8D"><div class="kpi-top"><span class="kpi-name">Iscritti acquisiti</span></div><div class="kpi-value" id="shortSubsGained">—</div></div>
+      <div class="kpi-card" style="--kpi-color:#C15E8D"><div class="kpi-top"><span class="kpi-name">Commenti totali</span></div><div class="kpi-value" id="shortComments">—</div></div>
+    </div>
     <div class="table-wrap"><div class="table-scroll">
       <table><thead><tr><th>#</th><th>Titolo</th><th>Views</th><th>Like</th><th>Commenti</th></tr></thead>
       <tbody id="shortsVideosBody"><tr><td colspan="5" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
+
+    <div class="section-label"><span class="tag">📈</span><h2>Andamento nel tempo (mensile)</h2><div class="spacer"></div>
+      <select id="chartMetricSelect" onchange="renderAnalyticsChart()" style="background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-family:'Inter',sans-serif;font-size:12.5px;">
+        <option value="avgDuration">Durata media visione (min)</option>
+        <option value="avgPercentage">% media visione</option>
+        <option value="views">Views</option>
+        <option value="subscribersGained">Iscritti acquisiti</option>
+        <option value="comments">Commenti</option>
+      </select>
+    </div>
+    <div id="alertAnalyticsChart" class="alert-box warn hidden"></div>
+    <div class="chart-card"><canvas id="chartAnalytics"></canvas></div>
   </section>
 
   <section class="page" id="page-attrezzatura">
@@ -297,8 +377,21 @@
       <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Pezzi totali</span></div><div class="kpi-value" id="attrTotale">—</div></div>
       <div class="kpi-card" style="--kpi-color:#B48EDE"><div class="kpi-top"><span class="kpi-name">Proprietari coinvolti</span></div><div class="kpi-value" id="attrProprietari">—</div></div>
     </div>
-    <div class="table-wrap"><div class="table-scroll">
-      <table><thead><tr><th>Nome</th><th>Categoria</th><th>Proprietario</th><th>Costo</th><th>Stato</th><th></th></tr></thead>
+    <div class="table-wrap">
+      <div class="filter-bar">
+        <input type="text" id="attrezzaturaSearch" placeholder="🔍 Cerca per nome, categoria, proprietario..." oninput="renderAttrezzaturaTable()">
+        <select id="attrezzaturaFilterCategoria" onchange="renderAttrezzaturaTable()"><option value="">Tutte le categorie</option></select>
+        <select id="attrezzaturaFilterStato" onchange="renderAttrezzaturaTable()"><option value="">Tutti gli stati</option></select>
+        <span class="filter-count" id="attrezzaturaCount"></span>
+      </div>
+      <div class="table-scroll">
+      <table><thead><tr>
+        <th class="sortable" onclick="setSort('attrezzatura','Nome')">Nome <span class="sort-ind">↕</span></th>
+        <th class="sortable" onclick="setSort('attrezzatura','Categoria')">Categoria <span class="sort-ind">↕</span></th>
+        <th class="sortable" onclick="setSort('attrezzatura','Proprietario')">Proprietario <span class="sort-ind">↕</span></th>
+        <th class="sortable" onclick="setSort('attrezzatura','Costo')">Costo <span class="sort-ind">↕</span></th>
+        <th>Stato</th><th></th>
+      </tr></thead>
       <tbody id="attrezzaturaBody"><tr><td colspan="6" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
   </section>
@@ -352,8 +445,22 @@
     <div class="week-grid" id="weekGrid"></div>
 
     <div class="section-label"><span class="tag">→</span><h2>Prossimi eventi (30 giorni)</h2><div class="line"></div></div>
-    <div class="table-wrap"><div class="table-scroll">
-      <table><thead><tr><th>Quando</th><th>Evento</th><th>Tipo</th><th></th></tr></thead>
+    <div class="table-wrap">
+      <div class="filter-bar">
+        <input type="text" id="calendarioSearch" placeholder="🔍 Cerca evento..." oninput="renderCalendarioTable()">
+        <select id="calendarioFilterTipo" onchange="renderCalendarioTable()">
+          <option value="">Tutti i tipi</option>
+          <option value="registrazione">Registrazione</option>
+          <option value="altro">Altro</option>
+        </select>
+        <span class="filter-count" id="calendarioCount"></span>
+      </div>
+      <div class="table-scroll">
+      <table><thead><tr>
+        <th class="sortable" onclick="setSort('calendario','inizio')">Quando <span class="sort-ind">↕</span></th>
+        <th class="sortable" onclick="setSort('calendario','titolo')">Evento <span class="sort-ind">↕</span></th>
+        <th>Tipo</th><th></th>
+      </tr></thead>
       <tbody id="calendarioBody"><tr><td colspan="4" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
   </section>
@@ -377,9 +484,18 @@
       <button class="btn" onclick="addGuest()">Salva ospite</button>
     </div>
 
-    <div class="table-wrap"><div class="table-scroll">
-      <table><thead><tr><th>Nome</th><th>Contatti</th><th>Temi</th><th>Puntata</th><th>Stato</th><th>Azione</th></tr></thead>
-      <tbody id="ospitiBody"><tr><td colspan="6" class="empty-state">Caricamento...</td></tr></tbody></table>
+    <div class="table-wrap">
+      <div class="filter-bar">
+        <input type="text" id="ospitiSearch" placeholder="🔍 Cerca per nome, contatti, temi..." oninput="renderOspitiTable()">
+        <select id="ospitiFilterStato" onchange="renderOspitiTable()"><option value="">Tutti gli stati</option></select>
+        <span class="filter-count" id="ospitiCount"></span>
+      </div>
+      <div class="table-scroll">
+      <table><thead><tr>
+        <th class="sortable" onclick="setSort('ospiti','Nome')">Nome <span class="sort-ind">↕</span></th>
+        <th>Contatti</th><th>Temi</th><th>Puntata</th><th>Stato</th><th>Note</th><th></th>
+      </tr></thead>
+      <tbody id="ospitiBody"><tr><td colspan="7" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
   </section>
 
@@ -392,7 +508,7 @@
 <script>
 const CONFIG = {
   SHEET_ID: "1-PDe062FZUGOtaBBBcYRWkvFNT7Ya3YC55ZjggUcw5s",
-  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbylXiE_CrgfiN_A4Swvs7CzeJe3GVOTTV6sq_sKHBnkjiRyN6SfbWrsc0qulnrkDkwR/exec",
+  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzFtCIsANsbNSH04cc9uvxoEhga6UIXMPjQexslvVpxGOvXKo2A6fgFwlmjwIRxiofp/exec",
   GOOGLE_API_KEY: "AIzaSyDoh9uOPdpdrvOi1jlLYQ51FcSUnCocUTw",
   YOUTUBE_HANDLE: "UltimoShampooPodcast",
   ON_AIR_KEYWORD: "registrazione",
@@ -457,6 +573,72 @@ function callAppsScript(action, data){
   });
 }
 
+/* ===================== UTILITY GENERICA: FILTRO / ORDINAMENTO / RICERCA ===================== */
+const tableState = {
+  episodi: { search:"", sort:{key:null, dir:1}, filters:{} },
+  ospiti: { search:"", sort:{key:null, dir:1}, filters:{} },
+  attrezzatura: { search:"", sort:{key:null, dir:1}, filters:{} },
+  calendario: { search:"", sort:{key:null, dir:1}, filters:{} },
+};
+function setSort(tableName, key){
+  const st = tableState[tableName];
+  if(st.sort.key === key) st.sort.dir *= -1;
+  else { st.sort.key = key; st.sort.dir = 1; }
+  updateSortIndicators(tableName, key);
+  ({episodi:renderEpisodiTable, ospiti:renderOspitiTable, attrezzatura:renderAttrezzaturaTable, calendario:renderCalendarioTable})[tableName]();
+}
+function updateSortIndicators(tableName, activeKey){
+  document.querySelectorAll(`#page-${tableName} th.sortable`).forEach(th=>{
+    th.classList.remove("active");
+    const ind = th.querySelector(".sort-ind"); if(ind) ind.textContent = "↕";
+  });
+  const st = tableState[tableName];
+  document.querySelectorAll(`#page-${tableName} th.sortable`).forEach(th=>{
+    if(th.getAttribute("onclick") && th.getAttribute("onclick").includes(`'${tableName}','${activeKey}'`)){
+      th.classList.add("active");
+      const ind = th.querySelector(".sort-ind"); if(ind) ind.textContent = st.sort.dir===1 ? "▲" : "▼";
+    }
+  });
+}
+function applyFilters(data, tableName, searchFields){
+  const st = tableState[tableName];
+  let out = data;
+  if(st.search && st.search.trim()){
+    const q = st.search.trim().toLowerCase();
+    out = out.filter(row => searchFields.some(f => String(row[f]||"").toLowerCase().includes(q)));
+  }
+  Object.entries(st.filters).forEach(([col,val])=>{
+    if(val) out = out.filter(row => String(row[col]||"") === val);
+  });
+  if(st.sort.key){
+    out = [...out].sort((a,b)=>{
+      let av = a[st.sort.key], bv = b[st.sort.key];
+      av = av==null ? "" : av; bv = bv==null ? "" : bv;
+      if(av>bv) return st.sort.dir;
+      if(av<bv) return -st.sort.dir;
+      return 0;
+    });
+  }
+  return out;
+}
+function populateSelectOptions(selectId, values, currentVal){
+  const sel = document.getElementById(selectId);
+  if(!sel) return;
+  const firstOption = sel.options[0];
+  sel.innerHTML = "";
+  sel.appendChild(firstOption);
+  [...new Set(values)].filter(Boolean).sort().forEach(v=>{
+    const opt = document.createElement("option");
+    opt.value = v; opt.textContent = v;
+    sel.appendChild(opt);
+  });
+  sel.value = currentVal || "";
+}
+async function confirmDelete(label, fn){
+  if(!confirm(`Eliminare definitivamente "${label}"? L'azione non è reversibile.`)) return;
+  try{ await fn(); }
+  catch(e){ alert("Errore eliminazione: "+e.message); }
+}
 
 let palinsestoData = [];
 function getEpisodeEventInfo(codPuntata){
@@ -480,6 +662,7 @@ function computeEpisodeStato(row){
   return {stato:"Da registrare", data:null};
 }
 
+let lastPodStats = {};
 async function loadPalinsesto(){
   hideAlert("alertEpisodi"); setWarnDot("warnEpisodi", false);
   try{
@@ -487,23 +670,30 @@ async function loadPalinsesto(){
     document.getElementById("kpiEpisodiTotali").textContent = fmtNum(palinsestoData.length);
 
     let videoIds = palinsestoData.map(r=>extractYoutubeId(r["Link"]||r["Link intervista"])).filter(Boolean);
-    let stats = {};
-    if(HAS_GOOGLE_KEY && videoIds.length) stats = await fetchVideoStats(videoIds);
+    if(HAS_GOOGLE_KEY && videoIds.length) lastPodStats = await fetchVideoStats(videoIds);
 
-    renderEpisodiTable(stats);
+    populateSelectOptions("episodiFilterStato", palinsestoData.map(r=>computeEpisodeStato(r).stato), tableState.episodi.filters["_stato"]);
+    renderEpisodiTable();
   }catch(e){
     console.error('Errore tab "'+CONFIG.TABS.palinsesto+'":', e);
     showAlert("alertEpisodi","error",`⚠️ Impossibile leggere la tab "${CONFIG.TABS.palinsesto}": ${e.message}`);
     setWarnDot("warnEpisodi", true);
-    document.getElementById("episodiBody").innerHTML = `<tr><td colspan="7" class="empty-state">Dati non disponibili</td></tr>`;
+    document.getElementById("episodiBody").innerHTML = `<tr><td colspan="8" class="empty-state">Dati non disponibili</td></tr>`;
     document.getElementById("kpiEpisodiTotali").textContent = "—";
     throw e;
   }
 }
-function renderEpisodiTable(stats){
-  stats = stats || {};
+function renderEpisodiTable(){
+  tableState.episodi.filters["_stato"] = document.getElementById("episodiFilterStato").value;
+  tableState.episodi.search = document.getElementById("episodiSearch").value;
+
+  const enriched = palinsestoData.map(r=>({...r, _stato: computeEpisodeStato(r).stato}));
+  const rows = applyFilters(enriched, "episodi", ["Cod_puntata","Titolo","Ospiti esterni","_stato"]);
+  document.getElementById("episodiCount").textContent = `${rows.length} di ${palinsestoData.length}`;
+
   const tbody = document.getElementById("episodiBody");
-  tbody.innerHTML = palinsestoData.length ? palinsestoData.map(r=>{
+  const stats = lastPodStats;
+  tbody.innerHTML = rows.length ? rows.map(r=>{
     const id = extractYoutubeId(r["Link"]||r["Link intervista"]);
     const s = id ? stats[id] : null;
     const info = computeEpisodeStato(r);
@@ -512,18 +702,23 @@ function renderEpisodiTable(stats){
     const dataTxt = info.data ? info.data.toLocaleDateString("it-IT",{day:"2-digit",month:"short",year:"numeric"}) + (info.stato==="In registrazione"||info.stato==="Da registrare" ? " "+info.data.toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"}) : "") : "—";
     return `<tr>
       <td>${cod||"—"}</td>
-      <td>${r["Titolo"]||"—"}</td>
-      <td>${r["Ospiti esterni"]||"—"}</td>
+      <td><input class="note-input" value="${(r["Titolo"]||"").replace(/"/g,"&quot;")}" onchange="saveEpisodeField('${codEsc}','Titolo',this.value)"></td>
+      <td><input class="note-input" value="${(r["Ospiti esterni"]||"").replace(/"/g,"&quot;")}" onchange="saveEpisodeField('${codEsc}','Ospiti esterni',this.value)"></td>
       <td><span class="badge ${badgeClass(info.stato)}">${info.stato}</span><div style="font-size:10px;color:var(--text-muted);margin-top:2px">${dataTxt}</div></td>
-      <td>${r["Data pubblicazione"]||"—"}</td>
+      <td><input type="date" class="note-input" value="${r["Data pubblicazione"]||""}" onchange="saveEpisodeField('${codEsc}','Data pubblicazione',this.value)"></td>
       <td>${s ? fmtNum(s.viewCount) : "—"}</td>
-      <td><input class="note-input" value="${(r["Note"]||"").replace(/"/g,"&quot;")}" onchange="saveEpisodeNote('${codEsc}', this.value)" placeholder="Note..."></td>
+      <td><input class="note-input" value="${(r["Note"]||"").replace(/"/g,"&quot;")}" onchange="saveEpisodeField('${codEsc}','Note',this.value)" placeholder="Note..."></td>
+      <td><button class="icon-btn danger" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="confirmDelete('${codEsc}', ()=>deleteEpisode('${codEsc}'))">🗑</button></td>
     </tr>`;
-  }).join("") : `<tr><td colspan="7" class="empty-state">Nessun episodio in Palinsesto</td></tr>`;
+  }).join("") : `<tr><td colspan="8" class="empty-state">Nessun episodio trovato</td></tr>`;
 }
-async function saveEpisodeNote(cod, note){
-  try{ await callAppsScript("updateEpisodeNote", {codPuntata:cod, note}); }
-  catch(e){ alert("Errore salvataggio nota: "+e.message); }
+async function saveEpisodeField(cod, campo, valore){
+  try{ await callAppsScript("updateEpisodeField", {codPuntata:cod, [campo]:valore}); }
+  catch(e){ alert("Errore salvataggio: "+e.message); await loadPalinsesto(); }
+}
+async function deleteEpisode(cod){
+  await callAppsScript("deleteRow", {tab:"Palinsesto", matchColumn:"Cod_puntata", matchValue:cod});
+  await loadPalinsesto();
 }
 async function addEpisode(){
   const data = {
@@ -615,7 +810,8 @@ async function loadChannelKpi(){
     // --- Video podcast ufficiali: quelli linkati in Palinsesto ---
     let podcastIds = palinsestoData.map(r=>extractYoutubeId(r["Link"]||r["Link intervista"])).filter(Boolean);
     const podStats = await fetchVideoStats(podcastIds);
-    renderEpisodiTable(podStats);
+    lastPodStats = podStats;
+    renderEpisodiTable();
     const podRows = palinsestoData.map(r=>{
       const id = extractYoutubeId(r["Link"]||r["Link intervista"]);
       const s = id ? podStats[id] : null;
@@ -629,11 +825,13 @@ async function loadChannelKpi(){
 
     // --- Shorts: scansione di tutti i video del canale, classificati per durata ---
     const uploadsId = ch.contentDetails && ch.contentDetails.relatedPlaylists && ch.contentDetails.relatedPlaylists.uploads;
+    let shortsIds = [];
     if(uploadsId){
       const allIds = await fetchAllUploadIds(uploadsId, 200); // limite di sicurezza, vedi guida
       const allVideos = await fetchVideosFull(allIds);
       const shorts = allVideos
         .map(v=>({
+          id: v.id,
           titolo: v.snippet.title,
           views: parseInt(v.statistics.viewCount||0),
           like: parseInt(v.statistics.likeCount||0),
@@ -642,6 +840,7 @@ async function loadChannelKpi(){
         }))
         .filter(v=>v.durata>0 && v.durata<=SHORTS_MAX_SECONDS)
         .sort((a,b)=>b.views-a.views);
+      shortsIds = shorts.map(v=>v.id);
       document.getElementById("shortCount").textContent = fmtNum(shorts.length);
       document.getElementById("shortViews").textContent = fmtNum(shorts.reduce((a,r)=>a+r.views,0));
       document.getElementById("shortAvg").textContent = fmtNum(avg(shorts.map(r=>r.views)));
@@ -650,11 +849,96 @@ async function loadChannelKpi(){
     } else {
       document.getElementById("shortsVideosBody").innerHTML = `<tr><td colspan="5" class="empty-state">Impossibile leggere la playlist caricamenti del canale</td></tr>`;
     }
+
+    await loadAnalytics(podcastIds, shortsIds);
   }catch(e){
     console.error("Errore YouTube:", e);
     showAlert("alertYoutube","warn",`⚠️ Errore YouTube API: ${e.message}`);
     setWarnDot("warnYoutube", true);
   }
+}
+
+/* ===================== YOUTUBE ANALYTICS (durata visione, %, iscritti, commenti) ===================== */
+let analyticsSeries = { podcast: [], shorts: [] };
+function fmtMinSec(seconds){
+  if(!seconds) return "—";
+  const m = Math.floor(seconds/60), s = Math.round(seconds%60);
+  return `${m}:${String(s).padStart(2,"0")}`;
+}
+async function loadAnalytics(podcastIds, shortsIds){
+  hideAlert("alertAnalyticsPod"); hideAlert("alertAnalyticsShort"); hideAlert("alertAnalyticsChart");
+  if(!HAS_APPS_SCRIPT){
+    const msg = `⚠️ Statistiche di visione non disponibili — richiedono l'Apps Script con "YouTube Analytics API" abilitata (vedi guida setup).`;
+    showAlert("alertAnalyticsPod","warn",msg);
+    showAlert("alertAnalyticsShort","warn",msg);
+    showAlert("alertAnalyticsChart","warn",msg);
+    return;
+  }
+  try{
+    const [podSummary, shortSummary] = await Promise.all([
+      callAppsScript("getAnalyticsSummary", {videoIds: podcastIds}),
+      callAppsScript("getAnalyticsSummary", {videoIds: shortsIds}),
+    ]);
+    document.getElementById("podWatchMin").textContent = fmtMinSec(podSummary.averageViewDuration);
+    document.getElementById("podWatchPct").textContent = podSummary.averageViewPercentage ? podSummary.averageViewPercentage.toFixed(1)+"%" : "—";
+    document.getElementById("podSubsGained").textContent = fmtNum(podSummary.subscribersGained||0);
+    document.getElementById("podComments").textContent = fmtNum(podSummary.comments||0);
+    document.getElementById("shortWatchMin").textContent = fmtMinSec(shortSummary.averageViewDuration);
+    document.getElementById("shortWatchPct").textContent = shortSummary.averageViewPercentage ? shortSummary.averageViewPercentage.toFixed(1)+"%" : "—";
+    document.getElementById("shortSubsGained").textContent = fmtNum(shortSummary.subscribersGained||0);
+    document.getElementById("shortComments").textContent = fmtNum(shortSummary.comments||0);
+  }catch(e){
+    console.error("Errore Analytics summary:", e);
+    const msg = `⚠️ Statistiche di visione non disponibili: ${e.message}. Verifica che "YouTube Analytics API" sia abilitata nell'Apps Script e che l'account distribuito sia proprietario/manager del canale.`;
+    showAlert("alertAnalyticsPod","warn",msg);
+    showAlert("alertAnalyticsShort","warn",msg);
+  }
+  try{
+    const [podSeries, shortSeries] = await Promise.all([
+      callAppsScript("getAnalyticsTimeSeries", {videoIds: podcastIds}),
+      callAppsScript("getAnalyticsTimeSeries", {videoIds: shortsIds}),
+    ]);
+    analyticsSeries.podcast = podSeries.rows || [];
+    analyticsSeries.shorts = shortSeries.rows || [];
+    renderAnalyticsChart();
+  }catch(e){
+    console.error("Errore Analytics serie:", e);
+    showAlert("alertAnalyticsChart","warn",`⚠️ Andamento nel tempo non disponibile: ${e.message}`);
+  }
+}
+let analyticsChartInstance = null;
+function renderAnalyticsChart(){
+  const metric = document.getElementById("chartMetricSelect").value;
+  // colonne righe: [mese, views, averageViewDuration, averageViewPercentage, subscribersGained, comments]
+  const idxMap = { views:1, avgDuration:2, avgPercentage:3, subscribersGained:4, comments:5 };
+  const idx = idxMap[metric];
+  const toValue = (row)=> metric==="avgDuration" ? Math.round((row[idx]||0)/60*10)/10 : (row[idx]||0);
+
+  const months = [...new Set([...analyticsSeries.podcast, ...analyticsSeries.shorts].map(r=>r[0]))].sort();
+  const podMap = Object.fromEntries(analyticsSeries.podcast.map(r=>[r[0], toValue(r)]));
+  const shortMap = Object.fromEntries(analyticsSeries.shorts.map(r=>[r[0], toValue(r)]));
+
+  const ctx = document.getElementById("chartAnalytics").getContext("2d");
+  if(analyticsChartInstance) analyticsChartInstance.destroy();
+  analyticsChartInstance = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: months,
+      datasets: [
+        { label:"Podcast", data: months.map(m=>podMap[m]??null), borderColor:"#6FA3D8", backgroundColor:"rgba(111,163,216,.12)", tension:.3, spanGaps:true },
+        { label:"Shorts", data: months.map(m=>shortMap[m]??null), borderColor:"#F0A0C4", backgroundColor:"rgba(240,160,196,.12)", tension:.3, spanGaps:true },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:"top", labels:{color:"#23222B", font:{family:"Inter"}} } },
+      scales:{
+        x:{ ticks:{color:"#8B8894", font:{family:"IBM Plex Mono", size:10}}, grid:{color:"#EEEDF3"} },
+        y:{ ticks:{color:"#8B8894", font:{family:"IBM Plex Mono", size:10}}, grid:{color:"#EEEDF3"} },
+      }
+    }
+  });
+  document.getElementById("chartAnalytics").parentElement.style.height = "300px";
 }
 
 let attrezzaturaData = [];
@@ -669,8 +953,18 @@ async function loadAttrezzatura(){
     document.getElementById("attrezzaturaBody").innerHTML = `<tr><td colspan="6" class="empty-state">Dati non disponibili</td></tr>`;
     throw e;
   }
+  populateSelectOptions("attrezzaturaFilterCategoria", attrezzaturaData.map(r=>r["Categoria"]), tableState.attrezzatura.filters["Categoria"]);
+  populateSelectOptions("attrezzaturaFilterStato", attrezzaturaData.map(r=>r["Stato"]), tableState.attrezzatura.filters["Stato"]);
+  renderAttrezzaturaTable();
+}
+function renderAttrezzaturaTable(){
+  tableState.attrezzatura.search = document.getElementById("attrezzaturaSearch").value;
+  tableState.attrezzatura.filters["Categoria"] = document.getElementById("attrezzaturaFilterCategoria").value;
+  tableState.attrezzatura.filters["Stato"] = document.getElementById("attrezzaturaFilterStato").value;
+
   const tbody = document.getElementById("attrezzaturaBody");
   if(!attrezzaturaData.length){ tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Tab vuota</td></tr>`; return; }
+
   let valoreTot=0, daSostituire=0; const proprietari=new Set();
   attrezzaturaData.forEach(r=>{
     const costo=parseFloat((r["Costo"]||"0").toString().replace(",","."));
@@ -684,22 +978,30 @@ async function loadAttrezzatura(){
   document.getElementById("attrTotale").textContent = fmtNum(attrezzaturaData.length);
   document.getElementById("attrProprietari").textContent = fmtNum(proprietari.size);
 
-  tbody.innerHTML = attrezzaturaData.map((r,i)=>`
-    <tr>
-      <td><input class="note-input" value="${(r["Nome"]||"").replace(/"/g,"&quot;")}" onchange="saveEquipmentField(${i},'Nome',this.value)"></td>
-      <td><input class="note-input" value="${(r["Categoria"]||"").replace(/"/g,"&quot;")}" onchange="saveEquipmentField(${i},'Categoria',this.value)"></td>
-      <td><input class="note-input" value="${(r["Proprietario"]||"").replace(/"/g,"&quot;")}" onchange="saveEquipmentField(${i},'Proprietario',this.value)"></td>
-      <td><input class="note-input" style="width:70px" value="${r["Costo"]||""}" onchange="saveEquipmentField(${i},'Costo',this.value)"></td>
-      <td><span class="badge b-grey">${r["Stato"]||"—"}</span></td>
-      <td><button class="icon-btn" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="alert('Modifica direttamente i campi nella riga')">✎</button></td>
-    </tr>`).join("");
+  const rows = applyFilters(attrezzaturaData, "attrezzatura", ["Nome","Categoria","Proprietario"]);
+  document.getElementById("attrezzaturaCount").textContent = `${rows.length} di ${attrezzaturaData.length}`;
+
+  tbody.innerHTML = rows.length ? rows.map(r=>{
+    const nomeEsc = (r["Nome"]||"").replace(/'/g,"\\'");
+    return `<tr>
+      <td><input class="note-input" value="${(r["Nome"]||"").replace(/"/g,"&quot;")}" onchange="saveEquipmentField('${nomeEsc}','Nome',this.value)"></td>
+      <td><input class="note-input" value="${(r["Categoria"]||"").replace(/"/g,"&quot;")}" onchange="saveEquipmentField('${nomeEsc}','Categoria',this.value)"></td>
+      <td><input class="note-input" value="${(r["Proprietario"]||"").replace(/"/g,"&quot;")}" onchange="saveEquipmentField('${nomeEsc}','Proprietario',this.value)"></td>
+      <td><input class="note-input" style="width:70px" value="${r["Costo"]||""}" onchange="saveEquipmentField('${nomeEsc}','Costo',this.value)"></td>
+      <td><select class="note-input" onchange="saveEquipmentField('${nomeEsc}','Stato',this.value)">
+        ${["Funzionante","Da controllare","In riparazione","Rotto"].map(o=>`<option ${o===(r["Stato"]||"")?"selected":""}>${o}</option>`).join("")}
+      </select></td>
+      <td><button class="icon-btn danger" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="confirmDelete('${nomeEsc}', ()=>deleteEquipment('${nomeEsc}'))">🗑</button></td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="6" class="empty-state">Nessuna attrezzatura trovata</td></tr>`;
 }
-async function saveEquipmentField(i, campo, valore){
-  const row = attrezzaturaData[i];
-  try{
-    await callAppsScript("updateEquipment", {nomeOriginale: row["Nome"], [campo]: valore});
-    row[campo] = valore;
-  }catch(e){ alert("Errore salvataggio: "+e.message); }
+async function saveEquipmentField(nomeOriginale, campo, valore){
+  try{ await callAppsScript("updateEquipment", {nomeOriginale, [campo]: valore}); await loadAttrezzatura(); }
+  catch(e){ alert("Errore salvataggio: "+e.message); }
+}
+async function deleteEquipment(nome){
+  await callAppsScript("deleteRow", {tab:"Inventario attrezzatura", matchColumn:"Nome", matchValue:nome});
+  await loadAttrezzatura();
 }
 async function addEquipment(){
   const data = {
@@ -788,6 +1090,22 @@ async function cancelEvent(eventId){
     await loadPalinsesto();
   }catch(e){ alert("Errore: "+e.message); }
 }
+async function deleteEvent(eventId, titolo){
+  await callAppsScript("deleteCalendarEvent", {eventId});
+  await loadCalendario();
+  await loadPalinsesto();
+}
+async function updateEventField(eventId, field, value){
+  try{
+    const payload = {eventId};
+    if(field==="titolo") payload.titolo = value;
+    if(field==="data") payload.data = value;
+    if(field==="oraInizio") payload.oraInizio = value;
+    await callAppsScript("updateCalendarEvent", payload);
+    await loadCalendario();
+    await loadPalinsesto();
+  }catch(e){ alert("Errore salvataggio: "+e.message); }
+}
 
 function fmtWhen(ev){
   const d = new Date(ev.inizio);
@@ -816,18 +1134,12 @@ async function loadCalendario(){
     const resp = await callAppsScript("getEvents", {timeMin: timeMin.toISOString(), timeMax: timeMax.toISOString()});
     calendarEvents = resp || [];
 
-    const future = calendarEvents.filter(ev=>new Date(ev.inizio) >= now && !isCancelled(ev)).sort((a,b)=>new Date(a.inizio)-new Date(b.inizio));
+    document.getElementById("homeCalendarBody").innerHTML = (()=>{
+      const upcoming = calendarEvents.filter(ev=>new Date(ev.inizio) >= now && !isCancelled(ev)).sort((a,b)=>new Date(a.inizio)-new Date(b.inizio)).slice(0,5);
+      return upcoming.length ? upcoming.map(ev=>`<tr><td>${fmtWhen(ev)}</td><td>${ev.titolo}</td></tr>`).join("") : `<tr><td colspan="2" class="empty-state">Nessun evento in programma</td></tr>`;
+    })();
 
-    document.getElementById("calendarioBody").innerHTML = future.length ? future.slice(0,20).map(ev=>`
-      <tr><td>${fmtWhen(ev)}</td><td>${ev.titolo||"(senza titolo)"}</td>
-      <td>${isRecEvent(ev) ? '<span class="badge b-amber">Registrazione</span>' : '<span class="badge b-grey">Altro</span>'}</td>
-      <td><button class="icon-btn" onclick="cancelEvent('${ev.id}')">Annulla</button></td></tr>
-    `).join("") : `<tr><td colspan="4" class="empty-state">Nessun evento nei prossimi 45 giorni</td></tr>`;
-
-    document.getElementById("homeCalendarBody").innerHTML = future.slice(0,5).length ? future.slice(0,5).map(ev=>`
-      <tr><td>${fmtWhen(ev)}</td><td>${ev.titolo}</td></tr>
-    `).join("") : `<tr><td colspan="2" class="empty-state">Nessun evento in programma</td></tr>`;
-
+    renderCalendarioTable();
     checkOnAirAndNext();
     renderWeekGrid();
     renderHighlights();
@@ -839,6 +1151,38 @@ async function loadCalendario(){
     document.getElementById("homeCalendarBody").innerHTML = `<tr><td colspan="2" class="empty-state">Dati non disponibili</td></tr>`;
     setOnAir(false, "Impossibile verificare il calendario", "");
   }
+}
+function renderCalendarioTable(){
+  tableState.calendario.search = document.getElementById("calendarioSearch").value;
+  tableState.calendario.filters["_tipo"] = document.getElementById("calendarioFilterTipo").value;
+
+  const now = new Date();
+  const enriched = calendarEvents
+    .filter(ev=>new Date(ev.inizio) >= now)
+    .map(ev=>({...ev, _tipo: isRecEvent(ev) ? "registrazione" : "altro"}));
+
+  let rows = applyFilters(enriched, "calendario", ["titolo"]);
+  document.getElementById("calendarioCount").textContent = `${rows.length} di ${enriched.length}`;
+
+  const tbody = document.getElementById("calendarioBody");
+  tbody.innerHTML = rows.length ? rows.map(ev=>{
+    const d = new Date(ev.inizio);
+    const dateVal = d.toISOString().slice(0,10);
+    const timeVal = ev.tuttoIlGiorno ? "" : d.toISOString().slice(11,16);
+    const idEsc = ev.id.replace(/'/g,"\\'");
+    return `<tr>
+      <td>
+        <input type="date" class="note-input" value="${dateVal}" onchange="updateEventField('${idEsc}','data',this.value)">
+        ${!ev.tuttoIlGiorno?`<input type="time" class="note-input" value="${timeVal}" onchange="updateEventField('${idEsc}','oraInizio',this.value)">`:""}
+      </td>
+      <td><input class="note-input" value="${(ev.titolo||"").replace(/"/g,"&quot;")}" onchange="updateEventField('${idEsc}','titolo',this.value)"></td>
+      <td>${isRecEvent(ev) ? '<span class="badge b-amber">Registrazione</span>' : '<span class="badge b-grey">Altro</span>'}${isCancelled(ev)?' <span class="badge b-red">Annullata</span>':''}</td>
+      <td style="white-space:nowrap">
+        <button class="icon-btn" onclick="cancelEvent('${idEsc}')">Annulla</button>
+        <button class="icon-btn danger" onclick="confirmDelete('${(ev.titolo||"").replace(/'/g,"\\'")}', ()=>deleteEvent('${idEsc}'))">🗑</button>
+      </td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="4" class="empty-state">Nessun evento trovato</td></tr>`;
 }
 
 function setOnAir(isLive, label, detail){
@@ -926,41 +1270,53 @@ function renderWeekGrid(){
 }
 function shiftWeek(delta){ weekOffset += delta; renderWeekGrid(); }
 
+let ospitiData = [];
 async function loadOspiti(){
   hideAlert("alertOspiti"); setWarnDot("warnOspiti", false);
-  let data;
-  try{ data = await fetchTab(CONFIG.TABS.ospiti); }
+  try{ ospitiData = await fetchTab(CONFIG.TABS.ospiti); }
   catch(e){
     console.error('Errore tab "'+CONFIG.TABS.ospiti+'":', e);
     showAlert("alertOspiti","error",`⚠️ Impossibile leggere la tab "${CONFIG.TABS.ospiti}": ${e.message}`);
     setWarnDot("warnOspiti", true);
-    document.getElementById("ospitiBody").innerHTML = `<tr><td colspan="6" class="empty-state">Dati non disponibili</td></tr>`;
+    document.getElementById("ospitiBody").innerHTML = `<tr><td colspan="7" class="empty-state">Dati non disponibili</td></tr>`;
     document.getElementById("kpiDaChiamare").textContent = "—";
     throw e;
   }
   populateEpisodeSelect("osPuntata");
-  const tbody = document.getElementById("ospitiBody");
-  if(!data.length){ tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Tab vuota</td></tr>`; document.getElementById("kpiDaChiamare").textContent="0"; return; }
-  const daChiamare = data.filter(r=>{ const s=(r["Stato"]||"").toLowerCase(); return s.includes("chiamare")||s===""; }).length;
+  populateSelectOptions("ospitiFilterStato", ospitiData.map(r=>r["Stato"]||"Da chiamare"), tableState.ospiti.filters["Stato"]);
+  const daChiamare = ospitiData.filter(r=>{ const s=(r["Stato"]||"").toLowerCase(); return s.includes("chiamare")||s===""; }).length;
   document.getElementById("kpiDaChiamare").textContent = fmtNum(daChiamare);
+  renderOspitiTable();
+}
+function renderOspitiTable(){
+  tableState.ospiti.search = document.getElementById("ospitiSearch").value;
+  tableState.ospiti.filters["Stato"] = document.getElementById("ospitiFilterStato").value;
+
+  const tbody = document.getElementById("ospitiBody");
+  if(!ospitiData.length){ tbody.innerHTML = `<tr><td colspan="7" class="empty-state">Tab vuota</td></tr>`; return; }
+
+  const rows = applyFilters(ospitiData, "ospiti", ["Nome","Contatti","Temi"]);
+  document.getElementById("ospitiCount").textContent = `${rows.length} di ${ospitiData.length}`;
 
   const episodeOptionsHtml = (selected)=> `<option value="">— nessuna —</option>` +
     palinsestoData.map(r=>`<option value="${r["Cod_puntata"]}" ${r["Cod_puntata"]===selected?"selected":""}>${r["Cod_puntata"]} — ${r["Titolo"]||"(senza titolo)"}</option>`).join("");
+  const statoOptionsHtml = (selected)=> ["Da chiamare","Chiamato","Confermato","Non disponibile"]
+    .map(o=>`<option ${o===selected?"selected":""}>${o}</option>`).join("");
 
-  tbody.innerHTML = data.map(r=>{
+  tbody.innerHTML = rows.length ? rows.map(r=>{
     const stato = r["Stato"] || "Da chiamare";
-    const prossimo = stato.toLowerCase().includes("chiamare") ? "Chiamato" : "Da chiamare";
     const nomeEsc = (r["Nome"]||"").replace(/'/g,"\\'");
     const cod = r["Cod_puntata"] || "";
     return `<tr>
-      <td>${r["Nome"]||"—"}</td>
-      <td>${r["Contatti"]||r["Email"]||r["Telefono"]||"—"}</td>
-      <td>${r["Temi"]||r["Temi trattabili"]||"—"}</td>
+      <td><input class="note-input" value="${(r["Nome"]||"").replace(/"/g,"&quot;")}" onchange="updateGuestField('${nomeEsc}','Nome',this.value)"></td>
+      <td><input class="note-input" value="${(r["Contatti"]||"").replace(/"/g,"&quot;")}" onchange="updateGuestField('${nomeEsc}','Contatti',this.value)"></td>
+      <td><input class="note-input" value="${(r["Temi"]||"").replace(/"/g,"&quot;")}" onchange="updateGuestField('${nomeEsc}','Temi',this.value)"></td>
       <td><select class="note-input" ${HAS_APPS_SCRIPT?"":"disabled"} onchange="updateGuestField('${nomeEsc}','Cod_puntata', this.value)">${episodeOptionsHtml(cod)}</select></td>
-      <td><span class="badge ${badgeClass(stato)}">${stato}</span></td>
-      <td><button class="icon-btn" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="updateGuestStatus('${nomeEsc}','${prossimo}')">Segna: ${prossimo}</button></td>
+      <td><select class="note-input" ${HAS_APPS_SCRIPT?"":"disabled"} onchange="updateGuestField('${nomeEsc}','Stato', this.value)">${statoOptionsHtml(stato)}</select></td>
+      <td><input class="note-input" value="${(r["Note"]||"").replace(/"/g,"&quot;")}" onchange="updateGuestField('${nomeEsc}','Note',this.value)" placeholder="Note..."></td>
+      <td><button class="icon-btn danger" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="confirmDelete('${nomeEsc}', ()=>deleteGuest('${nomeEsc}'))">🗑</button></td>
     </tr>`;
-  }).join("");
+  }).join("") : `<tr><td colspan="7" class="empty-state">Nessun ospite trovato</td></tr>`;
 }
 function populateEpisodeSelect(selectId){
   const sel = document.getElementById(selectId);
@@ -970,13 +1326,13 @@ function populateEpisodeSelect(selectId){
     palinsestoData.map(r=>`<option value="${r["Cod_puntata"]}">${r["Cod_puntata"]} — ${r["Titolo"]||"(senza titolo)"}</option>`).join("");
   sel.value = current || "";
 }
-async function updateGuestStatus(nome, nuovoStato){
-  try{ await callAppsScript("updateGuestStatus", {nome, nuovoStato}); await loadOspiti(); }
-  catch(e){ alert("Errore: "+e.message); }
-}
 async function updateGuestField(nome, campo, valore){
-  try{ await callAppsScript("updateGuestField", {nomeOriginale: nome, [campo]: valore}); }
-  catch(e){ alert("Errore salvataggio: "+e.message); await loadOspiti(); }
+  try{ await callAppsScript("updateGuestField", {nomeOriginale: nome, [campo]: valore}); await loadOspiti(); }
+  catch(e){ alert("Errore salvataggio: "+e.message); }
+}
+async function deleteGuest(nome){
+  await callAppsScript("deleteRow", {tab:"Ospiti", matchColumn:"Nome", matchValue:nome});
+  await loadOspiti();
 }
 async function addGuest(){
   const data = {
@@ -1015,29 +1371,44 @@ async function loadTask(){
 }
 function renderTaskGroups(){
   const wrap = document.getElementById("taskGroups");
+  const search = (document.getElementById("taskSearch").value||"").toLowerCase();
   const codes = [...new Set(palinsestoData.map(r=>r["Cod_puntata"]).filter(Boolean))];
   if(!codes.length){ wrap.innerHTML = `<div class="empty-state">Nessun episodio disponibile</div>`; return; }
 
   wrap.innerHTML = codes.map(cod=>{
     const ep = palinsestoData.find(r=>r["Cod_puntata"]===cod);
-    const items = checklistData.filter(t=>t["Cod_puntata"]===cod);
+    let items = checklistData.filter(t=>t["Cod_puntata"]===cod);
+    if(search) items = items.filter(t=>(t["Attività"]||"").toLowerCase().includes(search) || (t["Categoria"]||"").toLowerCase().includes(search));
+    if(search && !items.length) return "";
     return `<div class="task-group">
       <div class="task-group-head">
         <h3>${cod} — ${ep?ep["Titolo"]||"(senza titolo)":""}</h3>
         <button class="btn-ghost btn-small" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="generateStandardTasks('${cod}')">+ Genera flusso standard</button>
       </div>
-      ${items.length ? items.map(t=>`
-        <div class="task-row ${String(t["Fatto"]).toUpperCase()==='TRUE'?'done':''}">
-          <input type="checkbox" ${String(t["Fatto"]).toUpperCase()==='TRUE'?'checked':''} onchange="toggleTask('${t["ID"]}', this.checked)">
-          <span class="task-title">${t["Attività"]||"—"} <span class="badge b-grey">${t["Categoria"]||""}</span></span>
-          <span class="task-meta">${t["Scadenza"]||""}</span>
-        </div>`).join("") : `<div class="empty-state">Nessun task ancora — genera il flusso standard o aggiungine uno dal foglio</div>`}
+      ${items.length ? items.map(t=>{
+        const idEsc = t["ID"].replace(/'/g,"\\'");
+        return `<div class="task-row ${String(t["Fatto"]).toUpperCase()==='TRUE'?'done':''}">
+          <input type="checkbox" ${String(t["Fatto"]).toUpperCase()==='TRUE'?'checked':''} onchange="toggleTask('${idEsc}', this.checked)">
+          <input class="note-input" style="flex:2" value="${(t["Attività"]||"").replace(/"/g,"&quot;")}" onchange="updateChecklistField('${idEsc}','Attività',this.value)">
+          <input class="note-input" style="width:110px" value="${(t["Categoria"]||"").replace(/"/g,"&quot;")}" onchange="updateChecklistField('${idEsc}','Categoria',this.value)">
+          <input type="date" class="note-input" style="width:130px" value="${t["Scadenza"]||""}" onchange="updateChecklistField('${idEsc}','Scadenza',this.value)">
+          <button class="icon-btn danger" onclick="confirmDelete('${(t["Attività"]||"").replace(/'/g,"\\'")}', ()=>deleteTask('${idEsc}'))">🗑</button>
+        </div>`;
+      }).join("") : `<div class="empty-state">Nessun task ancora — genera il flusso standard o aggiungine uno dal foglio</div>`}
     </div>`;
-  }).join("");
+  }).join("") || `<div class="empty-state">Nessun task corrisponde alla ricerca</div>`;
 }
 async function toggleTask(id, fatto){
   try{ await callAppsScript("toggleChecklistItem", {id, fatto}); await loadTask(); }
   catch(e){ alert("Errore: "+e.message); }
+}
+async function updateChecklistField(id, campo, valore){
+  try{ await callAppsScript("updateChecklistField", {id, [campo]:valore}); await loadTask(); }
+  catch(e){ alert("Errore salvataggio: "+e.message); }
+}
+async function deleteTask(id){
+  await callAppsScript("deleteRow", {tab:"Checklist_puntate", matchColumn:"ID", matchValue:id});
+  await loadTask();
 }
 function addDays(dateStr, days){
   const d = new Date(dateStr); d.setDate(d.getDate()+days);
