@@ -215,14 +215,14 @@
 
 <nav class="sidebar">
   <div class="sidebar-logo-wrap"><img id="logoImg" alt="Ultimo Shampoo Podcast"><div class="sidebar-title">Ultimo <span>Shampoo</span></div></div>
-  <div class="sidebar-sub">DASHBOARD DI PRODUZIONE</div>
+  <div class="sidebar-sub"> - WORKSPACE PETTINATO - </div>
   <div class="nav-item active" data-page="home"><span class="ic">🏠</span> Home</div>
   <div class="nav-item" data-page="episodi"><span class="ic">🎬</span> Episodi<span class="warn-dot" id="warnEpisodi" style="display:none"></span></div>
-  <div class="nav-item" data-page="task"><span class="ic">✅</span> Task<span class="warn-dot" id="warnTask" style="display:none"></span></div>
-  <div class="nav-item" data-page="kpi-canale"><span class="ic">📈</span> KPI Canale<span class="warn-dot" id="warnYoutube" style="display:none"></span></div>
-  <div class="nav-item" data-page="attrezzatura"><span class="ic">🎥</span> Attrezzatura<span class="warn-dot" id="warnAttrezzatura" style="display:none"></span></div>
-  <div class="nav-item" data-page="calendario"><span class="ic">📅</span> Calendario<span class="warn-dot" id="warnCalendario" style="display:none"></span></div>
   <div class="nav-item" data-page="ospiti"><span class="ic">👤</span> Ospiti<span class="warn-dot" id="warnOspiti" style="display:none"></span></div>
+  <div class="nav-item" data-page="task"><span class="ic">✅</span> Task<span class="warn-dot" id="warnTask" style="display:none"></span></div>
+  <div class="nav-item" data-page="calendario"><span class="ic">📅</span> Calendario<span class="warn-dot" id="warnCalendario" style="display:none"></span></div>
+  <div class="nav-item" data-page="kpi-canale"><span class="ic">📈</span> KPI YouTube<span class="warn-dot" id="warnYoutube" style="display:none"></span></div>
+  <div class="nav-item" data-page="attrezzatura"><span class="ic">🎥</span> Attrezzatura<span class="warn-dot" id="warnAttrezzatura" style="display:none"></span></div>
   <div class="sidebar-status" id="connStatus">Verifica connessioni...</div>
   <div class="sidebar-actions">
     <button class="btn-ghost btn-small" style="width:100%;margin-top:8px" onclick="refreshAll()">↻ Aggiorna tutto</button>
@@ -240,23 +240,23 @@
       </div>
       <div class="strip-detail" id="onAirDetail"></div>
     </div>
-    <h1>Dashboard <span>&mdash; Ultimo Shampoo</span></h1>
-    <p class="subtitle">Produzione, canale YouTube, calendario e task — letti e scritti in diretta dal foglio Google e da Google Calendar.</p>
+    <h1><span>&mdash;Ultimo Shampoo</span></h1>
+    <p class="subtitle"></p>
 
     <div id="globalAlerts"></div>
 
-    <div class="section-label"><span class="tag">01</span><h2>Episodi</h2><div class="line"></div></div>
+    <div class="section-label"><span class="tag">01</span><h2>Operatività</h2><div class="line"></div></div>
+    <div class="kpi-grid">
+      <div class="kpi-card linkable" style="--kpi-color:#F0A0C4" onclick="goToPage('ospiti')"><div class="kpi-top"><span class="kpi-name">Ospiti da chiamare</span></div><div class="kpi-value" id="kpiDaChiamare">—</div></div>
+      <div class="kpi-card linkable" style="--kpi-color:#EFA75E" onclick="goToPage('task')"><div class="kpi-top"><span class="kpi-name">Task in sospeso</span></div><div class="kpi-value" id="kpiTaskSospesi">—</div></div>
+    </div>
+    
+    <div class="section-label"><span class="tag">02</span><h2>Episodi</h2><div class="line"></div></div>
     <div class="kpi-grid">
       <div class="kpi-card" style="--kpi-color:#5FB8A6"><div class="kpi-top"><span class="kpi-name">Registrati</span></div><div class="kpi-value" id="kpiEpRegistrati">—</div></div>
       <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Da registrare</span></div><div class="kpi-value" id="kpiEpDaRegistrare">—</div></div>
       <div class="kpi-card" style="--kpi-color:#EFA75E"><div class="kpi-top"><span class="kpi-name">Da montare</span></div><div class="kpi-value" id="kpiEpDaMontare">—</div></div>
       <div class="kpi-card" style="--kpi-color:#B48EDE"><div class="kpi-top"><span class="kpi-name">Da pubblicare</span></div><div class="kpi-value" id="kpiEpDaPubblicare">—</div></div>
-    </div>
-
-    <div class="section-label"><span class="tag">02</span><h2>Operatività</h2><div class="line"></div></div>
-    <div class="kpi-grid">
-      <div class="kpi-card linkable" style="--kpi-color:#F0A0C4" onclick="goToPage('ospiti')"><div class="kpi-top"><span class="kpi-name">Ospiti da chiamare</span></div><div class="kpi-value" id="kpiDaChiamare">—</div></div>
-      <div class="kpi-card linkable" style="--kpi-color:#EFA75E" onclick="goToPage('task')"><div class="kpi-top"><span class="kpi-name">Task in sospeso</span></div><div class="kpi-value" id="kpiTaskSospesi">—</div></div>
     </div>
 
     <div class="section-label"><span class="tag">03</span><h2>Canale</h2><div class="line"></div></div>
@@ -278,7 +278,7 @@
   <section class="page" id="page-episodi">
     <div class="section-label"><span class="tag">EP</span><h2>Episodi</h2><div class="spacer"></div><button class="btn btn-small" onclick="toggleForm('formEpisodio')">+ Nuovo episodio</button></div>
     <div id="alertEpisodi" class="alert-box error hidden"></div>
-    <p class="subtitle">Stato calcolato automaticamente dal calendario (non modificabile qui). Le note sono libere e si salvano subito.</p>
+    <p class="subtitle"></p>
 
     <div class="form-panel" id="formEpisodio" style="display:none">
       <div class="form-grid">
