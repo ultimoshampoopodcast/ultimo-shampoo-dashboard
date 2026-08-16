@@ -187,6 +187,51 @@
   .modal-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
   .modal-close{position:absolute;top:14px;right:18px;cursor:pointer;color:var(--text-muted);font-size:16px;background:none;border:none;}
 
+  /* Trigger campo data+ora combinato */
+  .dt-trigger{
+    display:inline-flex; align-items:center; gap:6px; cursor:pointer;
+    background:var(--panel); border:1px solid var(--border); border-radius:7px;
+    padding:6px 9px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--text-primary);
+    white-space:nowrap; min-width:118px;
+  }
+  .dt-trigger:hover{border-color:var(--purple);}
+  .dt-trigger.empty{color:var(--text-muted);}
+  .dt-trigger .dt-ic{font-size:12px;opacity:.7;}
+
+  /* Popup calendario + orario */
+  .dt-popup{
+    position:fixed; z-index:1200; background:var(--panel); border:1px solid var(--border);
+    border-radius:12px; box-shadow:0 8px 28px rgba(0,0,0,.18); padding:14px; width:250px;
+    display:none;
+  }
+  .dt-popup.show{display:block;}
+  .dt-popup-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .dt-popup-header button{background:var(--panel-alt);border:1px solid var(--border);border-radius:6px;width:26px;height:26px;cursor:pointer;color:var(--text-primary);font-size:13px;}
+  .dt-popup-header .dt-month-label{font-family:'Fraunces',serif;font-weight:600;font-size:13px;text-transform:capitalize;}
+  .dt-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:10px;}
+  .dt-weekday{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-muted);text-align:center;padding:3px 0;text-transform:uppercase;}
+  .dt-day{
+    text-align:center; padding:6px 0; border-radius:6px; cursor:pointer; font-size:12px;
+    background:transparent; border:none; color:var(--text-primary);
+  }
+  .dt-day:hover{background:var(--panel-alt);}
+  .dt-day.selected{background:var(--purple);color:#fff;font-weight:600;}
+  .dt-day.today:not(.selected){box-shadow:inset 0 0 0 1.5px var(--purple);}
+  .dt-day.other-month{color:var(--border);}
+  .dt-time-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-top:8px;border-top:1px solid var(--border-soft);}
+  .dt-time-row label{font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;color:var(--text-muted);}
+  .dt-time-row input{
+    background:var(--panel-alt); border:1px solid var(--border); border-radius:6px;
+    padding:6px 8px; font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--text-primary);
+    width:64px; text-align:center;
+  }
+  .dt-popup-actions{display:flex; gap:8px; justify-content:flex-end;}
+  .dt-popup-actions button{font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;padding:6px 12px;border-radius:7px;border:none;cursor:pointer;}
+  .dt-popup-actions .dt-confirm{background:var(--grad);color:#fff;}
+  .dt-popup-actions .dt-cancel{background:var(--panel-alt);color:var(--text-primary);border:1px solid var(--border);}
+  .dt-popup-overlay{position:fixed;inset:0;z-index:1190;display:none;}
+  .dt-popup-overlay.show{display:block;}
+
   .task-group{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden;}
   .task-group-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--panel-alt);border-bottom:1px solid var(--border);}
   .task-group-head h3{font-family:'Fraunces',serif;font-size:15px;margin:0;font-weight:600;}
@@ -343,12 +388,12 @@
         <div class="form-field"><label>Co-host</label><input id="epCohost" placeholder="Co-host"></div>
       </div>
       <div class="form-grid">
-        <div class="form-field"><label>Data registrazione (opz., gg/mm/aaaa)</label><input type="text" id="epDataReg" placeholder="gg/mm/aaaa" maxlength="10"></div>
-        <div class="form-field"><label>Ora registrazione (obbligatoria se data compilata)</label><input type="time" id="epOraReg"></div>
-      </div>
-      <div class="form-grid">
-        <div class="form-field"><label>Data pubblicazione (opz., gg/mm/aaaa)</label><input type="text" id="epDataPubb" placeholder="gg/mm/aaaa" maxlength="10"></div>
-        <div class="form-field"><label>Ora pubblicazione (obbligatoria se data compilata)</label><input type="time" id="epOraPubb"></div>
+        <div class="form-field"><label>Registrazione (opz.)</label>
+          <button type="button" class="dt-trigger empty" id="epRegDtTrigger" onclick="openDateTimePicker(this, epRegIso, epRegTime, (iso,time)=>{ epRegIso=iso; epRegTime=time; const b=document.getElementById('epRegDtTrigger'); b.innerHTML='<span class=\'dt-ic\'>📅</span>'+isoToDisplayDate(iso)+' · '+time; b.classList.remove('empty'); })">📅 Imposta data e ora</button>
+        </div>
+        <div class="form-field"><label>Pubblicazione (opz.)</label>
+          <button type="button" class="dt-trigger empty" id="epPubDtTrigger" onclick="openDateTimePicker(this, epPubIso, epPubTime, (iso,time)=>{ epPubIso=iso; epPubTime=time; const b=document.getElementById('epPubDtTrigger'); b.innerHTML='<span class=\'dt-ic\'>📅</span>'+isoToDisplayDate(iso)+' · '+time; b.classList.remove('empty'); })">📅 Imposta data e ora</button>
+        </div>
       </div>
       <p class="subtitle" style="margin:6px 0 0">Gli ospiti si assegnano dalla pagina Ospiti, dopo aver creato l'episodio.</p>
       <button class="btn" onclick="addEpisode()">Salva episodio</button>
@@ -521,15 +566,36 @@
     </div></div>
   </section>
 
+  <!-- ============ POPUP DATA+ORA COMBINATO (riutilizzabile ovunque) ============ -->
+  <div class="dt-popup-overlay" id="dtPopupOverlay" onclick="closeDateTimePicker()"></div>
+  <div class="dt-popup" id="dtPopup">
+    <div class="dt-popup-header">
+      <button onclick="dtShiftMonth(-1)">‹</button>
+      <span class="dt-month-label" id="dtMonthLabel"></span>
+      <button onclick="dtShiftMonth(1)">›</button>
+    </div>
+    <div class="dt-grid" id="dtGrid"></div>
+    <div class="dt-time-row">
+      <label>Ora</label>
+      <input type="text" id="dtTimeInput" placeholder="HH:mm" maxlength="5" inputmode="numeric">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted)">24h</span>
+    </div>
+    <div class="dt-popup-actions">
+      <button class="dt-cancel" onclick="closeDateTimePicker()">Annulla</button>
+      <button class="dt-confirm" onclick="confirmDateTimePicker()">Conferma</button>
+    </div>
+  </div>
+
   <!-- ============ MODAL EVENTO (creazione + modifica) ============ -->
   <div class="modal-overlay" id="eventModalOverlay">
     <div class="modal-box" style="position:relative">
       <button class="modal-close" onclick="closeEventModal()">✕</button>
       <h3 id="eventModalTitle">Nuovo evento</h3>
       <div class="form-grid">
-        <div class="form-field"><label>Data (obbligatoria, gg/mm/aaaa)</label><input type="text" id="evData" placeholder="gg/mm/aaaa" maxlength="10" required></div>
-        <div class="form-field"><label>Ora inizio (opz.)</label><input type="time" id="evOraInizio"></div>
-        <div class="form-field"><label>Ora fine (opz.)</label><input type="time" id="evOraFine"></div>
+        <div class="form-field"><label>Quando (obbligatorio)</label>
+          <button type="button" class="dt-trigger empty" id="evDtTrigger" onclick="openDateTimePicker(this, evSelectedIso, evSelectedTime, (iso,time)=>{ evSelectedIso=iso; evSelectedTime=time; const b=document.getElementById('evDtTrigger'); b.innerHTML='<span class=\'dt-ic\'>📅</span>'+isoToDisplayDate(iso)+' · '+time; b.classList.remove('empty'); })">📅 Imposta data e ora</button>
+        </div>
+        <div class="form-field"><label>Ora fine (opz., HH:mm 24h)</label><input type="text" id="evOraFine" placeholder="HH:mm" maxlength="5"></div>
         <div class="form-field"><label>Tipo</label>
           <select id="evTipo" onchange="onEventTypeChange()">
             <option value="Altro">Altro</option>
@@ -610,7 +676,7 @@
 
 <script>
 const CONFIG = {
-  SHEET_ID: "1-PDe062FZUGOtaBBBcYRWkvFNT7Ya3YC55ZjggUcw5s",
+ SHEET_ID: "1-PDe062FZUGOtaBBBcYRWkvFNT7Ya3YC55ZjggUcw5s",
   APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwE8WeTYnyn8E05tx6Lil3RMZHmvZaoyR-68Rj3Und88iBo9VfWPZv-_5TfBvq6_OFH/exec",
   GOOGLE_API_KEY: "AIzaSyDoh9uOPdpdrvOi1jlLYQ51FcSUnCocUTw",
   YOUTUBE_HANDLE: "UltimoShampooPodcast",
@@ -700,6 +766,86 @@ function onDateInputChange(inputEl, saveCallback){
 function dateInputHtml(iso, onChangeExpr, extraAttrs){
   return `<input type="text" class="note-input date-input" placeholder="gg/mm/aaaa" maxlength="10" value="${isoToDisplayDate(iso)}" onchange="onDateInputChange(this, (iso)=>{${onChangeExpr}})" ${extraAttrs||""}>`;
 }
+
+/* ===================== PICKER COMBINATO DATA+ORA (un unico input di informazione) ===================== */
+const dtState = { year:0, month:0, selectedIso:null, onConfirm:null };
+const DT_MONTH_NAMES = ["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"];
+const DT_WEEKDAYS = ["L","M","M","G","V","S","D"];
+
+function dtTriggerHtml(dateIso, timeVal, onConfirmBody, placeholder){
+  const hasVal = !!dateIso;
+  const display = hasVal ? (isoToDisplayDate(dateIso) + " · " + (timeVal||"--:--")) : (placeholder||"Imposta data e ora");
+  const cls = hasVal ? "dt-trigger" : "dt-trigger empty";
+  const dateEsc = (dateIso||"").replace(/'/g,"\\'");
+  const timeEsc = (timeVal||"").replace(/'/g,"\\'");
+  return `<button type="button" class="${cls}" onclick="openDateTimePicker(this,'${dateEsc}','${timeEsc}',(iso,time)=>{${onConfirmBody}})"><span class="dt-ic">📅</span>${display}</button>`;
+}
+function renderDtCalendar(){
+  const first = new Date(dtState.year, dtState.month, 1);
+  const startDow = (first.getDay()+6)%7; // lunedì=0
+  const daysInMonth = new Date(dtState.year, dtState.month+1, 0).getDate();
+  const prevMonthDays = new Date(dtState.year, dtState.month, 0).getDate();
+  document.getElementById("dtMonthLabel").textContent = DT_MONTH_NAMES[dtState.month]+" "+dtState.year;
+  const todayIso = new Date().toISOString().slice(0,10);
+  let html = DT_WEEKDAYS.map(w=>`<div class="dt-weekday">${w}</div>`).join("");
+  for(let i=0;i<startDow;i++){
+    html += `<button type="button" class="dt-day other-month" disabled>${prevMonthDays-startDow+i+1}</button>`;
+  }
+  for(let d=1; d<=daysInMonth; d++){
+    const iso = `${dtState.year}-${String(dtState.month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const isSel = iso===dtState.selectedIso;
+    const isToday = iso===todayIso;
+    html += `<button type="button" class="dt-day ${isSel?"selected":""} ${isToday?"today":""}" onclick="dtSelectDay('${iso}')">${d}</button>`;
+  }
+  document.getElementById("dtGrid").innerHTML = html;
+}
+function dtSelectDay(iso){ dtState.selectedIso = iso; renderDtCalendar(); }
+function dtShiftMonth(delta){
+  dtState.month += delta;
+  if(dtState.month<0){ dtState.month=11; dtState.year--; }
+  if(dtState.month>11){ dtState.month=0; dtState.year++; }
+  renderDtCalendar();
+}
+function openDateTimePicker(anchorEl, isoDate, timeVal, onConfirm){
+  dtState.selectedIso = isoDate || new Date().toISOString().slice(0,10);
+  const d = new Date(dtState.selectedIso+"T00:00:00");
+  dtState.year = d.getFullYear();
+  dtState.month = d.getMonth();
+  dtState.onConfirm = onConfirm;
+  document.getElementById("dtTimeInput").value = timeVal || "";
+  renderDtCalendar();
+
+  const popup = document.getElementById("dtPopup");
+  popup.classList.add("show");
+  document.getElementById("dtPopupOverlay").classList.add("show");
+  // Posiziona il popup vicino al campo cliccato, restando dentro lo schermo
+  const rect = anchorEl.getBoundingClientRect();
+  const popupWidth = popup.offsetWidth || 250;
+  const popupHeight = popup.offsetHeight || 330;
+  let left = rect.left;
+  if(left + popupWidth > window.innerWidth - 10) left = Math.max(10, window.innerWidth - popupWidth - 10);
+  let top = rect.bottom + 6;
+  if(top + popupHeight > window.innerHeight - 10) top = Math.max(10, rect.top - popupHeight - 6);
+  popup.style.left = left+"px";
+  popup.style.top = top+"px";
+}
+function closeDateTimePicker(){
+  document.getElementById("dtPopup").classList.remove("show");
+  document.getElementById("dtPopupOverlay").classList.remove("show");
+  dtState.onConfirm = null;
+}
+function confirmDateTimePicker(){
+  const timeRaw = document.getElementById("dtTimeInput").value.trim();
+  const m = timeRaw.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+  if(!m){ alert("Formato orario non valido. Usa HH:mm in 24 ore (es. 14:30) — niente AM/PM."); return; }
+  if(!dtState.selectedIso){ alert("Seleziona una data dal calendario."); return; }
+  const time = `${m[1].padStart(2,"0")}:${m[2]}`;
+  const iso = dtState.selectedIso;
+  const cb = dtState.onConfirm;
+  closeDateTimePicker();
+  if(cb) cb(iso, time);
+}
+
 function badgeClass(stato){
   const s=(stato||"").toLowerCase();
   if(s.includes("pubblicat")||s.includes("registrat")||s.includes("confermat")) return "b-blue";
@@ -899,14 +1045,8 @@ function renderEpisodiTable(){
       <td><input class="note-input" value="${(r["Titolo"]||"").replace(/"/g,"&quot;")}" onchange="saveEpisodeField('${codEsc}','Titolo',this.value)"></td>
       <td>${ospitiDisplay}</td>
       <td>${statoSelectHtml(cod, stato)}</td>
-      <td>
-        ${dateInputHtml(r["Data registrazione"], `saveEpisodeDateTime('${codEsc}','Data registrazione','Ora registrazione',iso)`)}
-        <input type="time" class="note-input" style="width:88px;margin-top:4px" value="${r["Ora registrazione"]||""}" onchange="saveEpisodeDateTime('${codEsc}','Ora registrazione','Data registrazione',this.value,true)">
-      </td>
-      <td>
-        ${dateInputHtml(r["Data pubblicazione"], `saveEpisodeDateTime('${codEsc}','Data pubblicazione','Ora pubblicazione',iso)`)}
-        <input type="time" class="note-input" style="width:88px;margin-top:4px" value="${r["Ora pubblicazione"]||""}" onchange="saveEpisodeDateTime('${codEsc}','Ora pubblicazione','Data pubblicazione',this.value,true)">
-      </td>
+      <td>${dtTriggerHtml(r["Data registrazione"], r["Ora registrazione"], `saveEpisodeDateTimeCombined('${codEsc}','Data registrazione','Ora registrazione',iso,time)`)}</td>
+      <td>${dtTriggerHtml(r["Data pubblicazione"], r["Ora pubblicazione"], `saveEpisodeDateTimeCombined('${codEsc}','Data pubblicazione','Ora pubblicazione',iso,time)`)}</td>
       <td>${s ? fmtNum(s.viewCount) : "—"}</td>
       <td><input class="note-input" value="${(r["Note"]||"").replace(/"/g,"&quot;")}" onchange="saveEpisodeField('${codEsc}','Note',this.value)" placeholder="Note..."></td>
       <td><button class="icon-btn danger" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="confirmDelete('${codEsc}', ()=>deleteEpisode('${codEsc}'))">🗑</button></td>
@@ -918,50 +1058,35 @@ async function saveEpisodeField(cod, campo, valore){
   try{ await callAppsScript("updateEpisodeField", {codPuntata:cod, [campo]:valore}); await loadPalinsesto(); }
   catch(e){ alert("Errore salvataggio: "+e.message); await loadPalinsesto(); }
 }
-// Salva data+ora insieme (obbligatorio avere entrambe se una delle due è compilata),
-// leggendo il valore corrente dell'altro campo dalla riga già caricata.
-async function saveEpisodeDateTime(cod, campoModificato, campoAltro, valoreModificato, isTime){
-  const row = palinsestoData.find(r=>r["Cod_puntata"]===cod);
-  const altroValoreAttuale = row ? (row[campoAltro]||"") : "";
-  const payload = {codPuntata:cod};
-  payload[campoModificato] = valoreModificato;
-  if(valoreModificato && !altroValoreAttuale){
-    const chiedeOra = !isTime;
-    alert(`Imposta anche ${chiedeOra?"l'orario":"la data"} corrispondente: serve per posizionare correttamente l'evento in calendario.`);
-    // Salviamo comunque il campo compilato: l'evento calendario verrà creato quando anche l'altro sarà impostato
-  }
-  try{ await callAppsScript("updateEpisodeField", payload); await loadPalinsesto(); }
+// Salva data+ora in un'unica chiamata atomica (il picker garantisce che siano sempre compilate insieme)
+async function saveEpisodeDateTimeCombined(cod, dateCol, timeCol, iso, time){
+  try{ await callAppsScript("updateEpisodeField", {codPuntata:cod, [dateCol]:iso, [timeCol]:time}); await loadPalinsesto(); }
   catch(e){ alert("Errore salvataggio: "+e.message); await loadPalinsesto(); }
 }
 async function deleteEpisode(cod){
   await callAppsScript("deleteRow", {tab:"Palinsesto", matchColumn:"Cod_puntata", matchValue:cod});
   await loadPalinsesto();
 }
+let epRegIso = "", epRegTime = "", epPubIso = "", epPubTime = "";
+function resetEpisodeForm(){
+  ["epTitolo","epConduttore","epCohost"].forEach(id=>document.getElementById(id).value="");
+  epRegIso=""; epRegTime=""; epPubIso=""; epPubTime="";
+  const bReg = document.getElementById("epRegDtTrigger"); bReg.innerHTML='📅 Imposta data e ora'; bReg.classList.add("empty");
+  const bPub = document.getElementById("epPubDtTrigger"); bPub.innerHTML='📅 Imposta data e ora'; bPub.classList.add("empty");
+}
 async function addEpisode(){
-  const dataRegRaw = document.getElementById("epDataReg").value.trim();
-  const dataPubbRaw = document.getElementById("epDataPubb").value.trim();
-  const oraReg = document.getElementById("epOraReg").value;
-  const oraPubb = document.getElementById("epOraPubb").value;
-  const dataRegIso = displayToIsoDate(dataRegRaw);
-  const dataPubbIso = displayToIsoDate(dataPubbRaw);
-  if(dataRegIso===null || dataPubbIso===null){
-    alert("Formato data non valido. Usa gg/mm/aaaa (es. 27/07/2026).");
-    return;
-  }
-  if(dataRegIso && !oraReg){ alert("Imposta anche l'orario di registrazione."); return; }
-  if(dataPubbIso && !oraPubb){ alert("Imposta anche l'orario di pubblicazione."); return; }
   const data = {
     titolo: document.getElementById("epTitolo").value.trim(),
     conduttore: document.getElementById("epConduttore").value.trim(),
     cohost: document.getElementById("epCohost").value.trim(),
-    dataRegistrazione: dataRegIso,
-    oraRegistrazione: oraReg,
-    dataPubblicazione: dataPubbIso,
-    oraPubblicazione: oraPubb
+    dataRegistrazione: epRegIso,
+    oraRegistrazione: epRegTime,
+    dataPubblicazione: epPubIso,
+    oraPubblicazione: epPubTime
   };
   try{
     await callAppsScript("addEpisode", data);
-    ["epTitolo","epConduttore","epCohost","epDataReg","epOraReg","epDataPubb","epOraPubb"].forEach(id=>document.getElementById(id).value="");
+    resetEpisodeForm();
     document.getElementById("formEpisodio").style.display="none";
     await loadPalinsesto();
     await loadCalendario();
@@ -1244,6 +1369,13 @@ function onEpisodeSelectChange(){
 }
 
 /* ---------- Modal creazione / modifica evento ---------- */
+let evSelectedIso = "", evSelectedTime = "";
+function resetEvDtTrigger(iso, time){
+  evSelectedIso = iso||""; evSelectedTime = time||"";
+  const b = document.getElementById("evDtTrigger");
+  if(iso){ b.innerHTML = `<span class="dt-ic">📅</span>${isoToDisplayDate(iso)} · ${time}`; b.classList.remove("empty"); }
+  else { b.innerHTML = "📅 Imposta data e ora"; b.classList.add("empty"); }
+}
 function openEventModal(ev, prefillDateStr, prefillAllDay){
   editingEventId = ev ? ev.id : null;
   document.getElementById("eventModalTitle").textContent = ev ? "Modifica evento" : "Nuovo evento";
@@ -1254,25 +1386,26 @@ function openEventModal(ev, prefillDateStr, prefillAllDay){
 
   if(ev){
     const d = new Date(ev.inizio);
-    document.getElementById("evData").value = isoToDisplayDate(d.toISOString().slice(0,10));
-    document.getElementById("evOraInizio").value = ev.tuttoIlGiorno ? "" : fmtTime(d);
+    resetEvDtTrigger(d.toISOString().slice(0,10), ev.tuttoIlGiorno ? "00:00" : fmtTime(d));
     document.getElementById("evOraFine").value = ev.tuttoIlGiorno ? "" : fmtTime(new Date(ev.fine));
     document.getElementById("evTitoloManuale").value = ev.titolo || "";
     const noteOnly = (ev.descrizione||"").replace(/^\[EP:[^\]]+\]\n?/, "");
     document.getElementById("evNote").value = noteOnly;
   } else {
-    ["evData","evOraInizio","evOraFine","evTitoloManuale","evNote","evNuovoTitolo"].forEach(id=>document.getElementById(id).value="");
+    ["evOraFine","evTitoloManuale","evNote","evNuovoTitolo"].forEach(id=>document.getElementById(id).value="");
     document.getElementById("evTipo").value = "Altro";
     if(prefillDateStr){
-      document.getElementById("evData").value = isoToDisplayDate(prefillDateStr.slice(0,10));
-      // Se il click è su uno slot orario (non su un giorno intero in vista mese), suggerisci l'orario esatto
+      let t = "";
       if(!prefillAllDay){
         const clicked = new Date(prefillDateStr);
         if(!isNaN(clicked)){
-          document.getElementById("evOraInizio").value = fmtTime(clicked);
+          t = fmtTime(clicked);
           document.getElementById("evOraFine").value = fmtTime(new Date(clicked.getTime()+60*60000));
         }
       }
+      resetEvDtTrigger(prefillDateStr.slice(0,10), t);
+    } else {
+      resetEvDtTrigger("", "");
     }
   }
   document.getElementById("eventModalOverlay").classList.add("show");
@@ -1282,12 +1415,15 @@ function closeEventModal(){
   editingEventId = null;
 }
 async function saveEventFromModal(){
-  const dataRaw = document.getElementById("evData").value.trim();
-  if(!dataRaw){ alert("La data è obbligatoria"); return; }
-  const data = displayToIsoDate(dataRaw);
-  if(data===null){ alert("Formato data non valido. Usa gg/mm/aaaa (es. 27/07/2026)."); return; }
-  const oraInizio = document.getElementById("evOraInizio").value;
-  const oraFine = document.getElementById("evOraFine").value;
+  if(!evSelectedIso || !evSelectedTime){ alert("Imposta data e ora dell'evento (tasto \"Imposta data e ora\")."); return; }
+  const data = evSelectedIso;
+  const oraInizio = evSelectedTime;
+  const oraFineRaw = document.getElementById("evOraFine").value.trim();
+  if(oraFineRaw && !/^([01]?\d|2[0-3]):[0-5]\d$/.test(oraFineRaw)){
+    alert("Formato Ora fine non valido. Usa HH:mm in 24 ore (es. 15:30).");
+    return;
+  }
+  const oraFine = oraFineRaw;
   const note = document.getElementById("evNote").value.trim();
   const titoloManuale = document.getElementById("evTitoloManuale").value.trim();
 
@@ -1356,6 +1492,13 @@ async function deleteEvent(eventId){
   await callAppsScript("deleteCalendarEvent", {eventId});
   await loadCalendario();
   await loadPalinsesto();
+}
+async function updateEventDateTimeCombined(eventId, iso, time){
+  try{
+    await callAppsScript("updateCalendarEvent", {eventId, data: iso, oraInizio: time});
+    await loadCalendario();
+    await loadPalinsesto();
+  }catch(e){ alert("Errore salvataggio: "+e.message); }
 }
 async function updateEventField(eventId, field, value){
   try{
@@ -1491,10 +1634,7 @@ function renderCalendarioTable(){
     const timeVal = ev.tuttoIlGiorno ? "" : fmtTime(d);
     const idEsc = ev.id.replace(/'/g,"\\'");
     return `<tr>
-      <td>
-        ${dateInputHtml(dateVal, `updateEventField('${idEsc}','data',iso)`)}
-        ${!ev.tuttoIlGiorno?`<input type="time" class="note-input" value="${timeVal}" onchange="updateEventField('${idEsc}','oraInizio',this.value)">`:""}
-      </td>
+      <td>${dtTriggerHtml(dateVal, timeVal, `updateEventDateTimeCombined('${idEsc}',iso,time)`)}</td>
       <td><input class="note-input" value="${(ev.titolo||"").replace(/"/g,"&quot;")}" onchange="updateEventField('${idEsc}','titolo',this.value)"></td>
       <td>${isRecEvent(ev) ? '<span class="badge b-amber">Registrazione</span>' : '<span class="badge b-grey">Altro</span>'}${isCancelled(ev)?' <span class="badge b-red">Annullata</span>':''}</td>
       <td style="white-space:nowrap">
@@ -1694,14 +1834,25 @@ function renderTaskGroups(){
           <input type="checkbox" ${String(t["Fatto"]).toUpperCase()==='TRUE'?'checked':''} onchange="toggleTask('${idEsc}', this.checked)">
           <input class="note-input" style="flex:2" value="${(t["Attività"]||"").replace(/"/g,"&quot;")}" onchange="updateChecklistField('${idEsc}','Attività',this.value)">
           <input class="note-input" style="width:110px" value="${(t["Categoria"]||"").replace(/"/g,"&quot;")}" onchange="updateChecklistField('${idEsc}','Categoria',this.value)">
-          ${dateInputHtml(t["Scadenza"], `updateChecklistField('${idEsc}','Scadenza',iso)`, `style="width:110px"`)}
-          <input type="time" class="note-input" style="width:80px" value="${t["Ora"]||""}" onchange="updateChecklistField('${idEsc}','Ora',this.value)">
+          ${dtTriggerHtml(t["Scadenza"], t["Ora"], `updateTaskDateTimeCombined('${idEsc}',iso,time)`)}
           <button class="icon-btn ${confirmed?"":"danger"}" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="confirmTaskToCalendar('${idEsc}','${(t["Scadenza"]||"")}','${(t["Ora"]||"")}')" title="${confirmed?"Aggiornato in calendario — clicca per risincronizzare":"Pubblica questa scadenza come evento in calendario"}">${confirmed?"✅ In calendario":"📅 Conferma"}</button>
           <button class="icon-btn danger" onclick="confirmDelete('${(t["Attività"]||"").replace(/'/g,"\\'")}', ()=>deleteTask('${idEsc}'))">🗑</button>
         </div>`;
       }).join("") : `<div class="empty-state">Nessun task ancora — genera il flusso standard o aggiungine uno dal foglio</div>`}
     </div>`;
   }).join("") || `<div class="empty-state">Nessun task corrisponde alla ricerca</div>`;
+}
+async function updateTaskDateTimeCombined(id, iso, time){
+  try{
+    await callAppsScript("updateChecklistField", {id, Scadenza: iso, Ora: time});
+    // Se questo task era già stato "confermato" a calendario in precedenza,
+    // risincronizza automaticamente l'evento esistente con la nuova data/ora.
+    const task = checklistData.find(t=>t["ID"]===id);
+    if(task && task["Calendar_Event_Id"]){
+      await callAppsScript("confirmTaskEvent", {id});
+    }
+    await loadTask();
+  }catch(e){ alert("Errore salvataggio: "+e.message); }
 }
 async function confirmTaskToCalendar(id, scadenza, ora){
   if(!scadenza){ alert("Imposta prima una data di Scadenza per questo task."); return; }
