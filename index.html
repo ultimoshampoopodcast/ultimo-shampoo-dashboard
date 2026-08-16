@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.11/index.global.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.11/locales-all.global.min.js"></script>
 <style>
@@ -200,29 +199,86 @@
 
   footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--border);font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--text-muted);}
 
+  /* ===================== MOBILE / TABLET (cassetto laterale stile app) ===================== */
+  .mobile-topbar{display:none;}
+  .sidebar-overlay{display:none;}
+
   @media (max-width:980px){
-    body{flex-direction:column;}
-    .sidebar{width:100%;height:auto;position:relative;display:flex;align-items:center;gap:10px;overflow-x:auto;padding:12px;}
-    .sidebar-title,.sidebar-sub,.sidebar-status{display:none;}
-    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    body{display:block;}
+    .mobile-topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      background:var(--panel); border-bottom:1px solid var(--border);
+      padding:12px 16px; position:sticky; top:0; z-index:520;
+    }
+    .mobile-topbar-left{display:flex;align-items:center;gap:10px;}
+    .mobile-topbar img{width:30px;height:30px;border-radius:8px;object-fit:cover;}
+    .mobile-topbar-title{font-family:'Fraunces',serif;font-weight:700;font-size:15px;}
+    .mobile-topbar-title span{color:var(--purple);font-style:italic;font-weight:500;}
+    .hamburger-btn{
+      background:var(--panel-alt); border:1px solid var(--border); border-radius:8px;
+      width:38px;height:38px; font-size:18px; cursor:pointer; color:var(--text-primary);
+    }
+
+    .sidebar{
+      position:fixed; top:0; left:0; height:100%; width:270px; max-width:82vw;
+      transform:translateX(-100%); transition:transform .25s ease;
+      z-index:600; box-shadow:2px 0 24px rgba(0,0,0,.18);
+    }
+    .sidebar.open{transform:translateX(0);}
+    .sidebar-overlay{
+      display:block; position:fixed; inset:0; background:rgba(35,34,43,.45);
+      opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:590;
+    }
+    .sidebar-overlay.show{opacity:1; pointer-events:auto;}
+
+    main{padding:16px 14px 70px; max-width:100%;}
+    h1{font-size:24px;}
+    .subtitle{font-size:12.5px;}
+    .kpi-grid{grid-template-columns:repeat(2,1fr); gap:8px;}
+    .kpi-value{font-size:22px;}
     .cal-highlights{grid-template-columns:1fr;}
-    .fc-wrap{padding:8px;}
+    .fc-wrap{padding:6px;}
+    .form-grid{grid-template-columns:1fr;}
+    table{font-size:11.5px;}
+    thead th{padding:7px 8px;font-size:9px;}
+    tbody td{padding:7px 8px;}
+    .filter-bar{padding:10px 12px;}
+    .modal-box{padding:16px;max-width:100%;}
+    .task-row{flex-wrap:wrap;}
+    .task-row .note-input{min-width:90px;}
+    .strip{padding:12px 14px;}
+    .section-label h2{font-size:15px;}
+  }
+  @media (max-width:480px){
+    .kpi-grid{grid-template-columns:1fr;}
+    .fc .fc-toolbar{flex-direction:column;gap:8px;align-items:stretch;}
+    .fc .fc-toolbar-title{font-size:15px;text-align:center;}
+    .fc .fc-button{padding:5px 9px;font-size:11.5px;}
   }
   :focus-visible{outline:2px solid var(--purple);outline-offset:2px;}
 </style>
 </head>
 <body>
 
-<nav class="sidebar">
-  <div class="sidebar-logo-wrap"><img id="logoImg" alt="Ultimo Shampoo Podcast"><div class="sidebar-title">Ultimo Shampoo</span></div></div>
-  <div class="sidebar-sub">WORKSPACE PETTINATO</div>
+<div class="mobile-topbar">
+  <div class="mobile-topbar-left">
+    <button class="hamburger-btn" onclick="toggleSidebar()">☰</button>
+    <img id="logoImgMobile" alt="Ultimo Shampoo Podcast">
+    <div class="mobile-topbar-title">Ultimo <span>Shampoo</span></div>
+  </div>
+</div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<nav class="sidebar" id="sidebarNav">
+  <div class="sidebar-logo-wrap"><img id="logoImg" alt="Ultimo Shampoo Podcast"><div class="sidebar-title">Ultimo <span>Shampoo</span></div></div>
+  <div class="sidebar-sub">DASHBOARD DI PRODUZIONE</div>
   <div class="nav-item active" data-page="home"><span class="ic">🏠</span> Home</div>
   <div class="nav-item" data-page="episodi"><span class="ic">🎬</span> Episodi<span class="warn-dot" id="warnEpisodi" style="display:none"></span></div>
-  <div class="nav-item" data-page="ospiti"><span class="ic">👤</span> Ospiti<span class="warn-dot" id="warnOspiti" style="display:none"></span></div>
   <div class="nav-item" data-page="task"><span class="ic">✅</span> Task<span class="warn-dot" id="warnTask" style="display:none"></span></div>
-  <div class="nav-item" data-page="calendario"><span class="ic">📅</span> Calendario<span class="warn-dot" id="warnCalendario" style="display:none"></span></div>
-  <div class="nav-item" data-page="kpi-canale"><span class="ic">📈</span> KPI YouTube<span class="warn-dot" id="warnYoutube" style="display:none"></span></div>
+  <div class="nav-item" data-page="kpi-canale"><span class="ic">📈</span> KPI Canale<span class="warn-dot" id="warnYoutube" style="display:none"></span></div>
   <div class="nav-item" data-page="attrezzatura"><span class="ic">🎥</span> Attrezzatura<span class="warn-dot" id="warnAttrezzatura" style="display:none"></span></div>
+  <div class="nav-item" data-page="calendario"><span class="ic">📅</span> Calendario<span class="warn-dot" id="warnCalendario" style="display:none"></span></div>
+  <div class="nav-item" data-page="ospiti"><span class="ic">👤</span> Ospiti<span class="warn-dot" id="warnOspiti" style="display:none"></span></div>
   <div class="sidebar-status" id="connStatus">Verifica connessioni...</div>
   <div class="sidebar-actions">
     <button class="btn-ghost btn-small" style="width:100%;margin-top:8px" onclick="refreshAll()">↻ Aggiorna tutto</button>
@@ -240,23 +296,23 @@
       </div>
       <div class="strip-detail" id="onAirDetail"></div>
     </div>
-    <h1><span>Ultimo Shampoo</span></h1>
-    <p class="subtitle"></p>
+    <h1>Dashboard <span>&mdash; Ultimo Shampoo</span></h1>
+    <p class="subtitle">Produzione, canale YouTube, calendario e task — letti e scritti in diretta dal foglio Google e da Google Calendar.</p>
 
     <div id="globalAlerts"></div>
 
-    <div class="section-label"><span class="tag">01</span><h2>Operatività</h2><div class="line"></div></div>
-    <div class="kpi-grid">
-      <div class="kpi-card linkable" style="--kpi-color:#F0A0C4" onclick="goToPage('ospiti')"><div class="kpi-top"><span class="kpi-name">Ospiti da chiamare</span></div><div class="kpi-value" id="kpiDaChiamare">—</div></div>
-      <div class="kpi-card linkable" style="--kpi-color:#EFA75E" onclick="goToPage('task')"><div class="kpi-top"><span class="kpi-name">Task in sospeso</span></div><div class="kpi-value" id="kpiTaskSospesi">—</div></div>
-    </div>
-    
-    <div class="section-label"><span class="tag">02</span><h2>Episodi</h2><div class="line"></div></div>
+    <div class="section-label"><span class="tag">01</span><h2>Episodi</h2><div class="line"></div></div>
     <div class="kpi-grid">
       <div class="kpi-card" style="--kpi-color:#5FB8A6"><div class="kpi-top"><span class="kpi-name">Registrati</span></div><div class="kpi-value" id="kpiEpRegistrati">—</div></div>
       <div class="kpi-card" style="--kpi-color:#6FA3D8"><div class="kpi-top"><span class="kpi-name">Da registrare</span></div><div class="kpi-value" id="kpiEpDaRegistrare">—</div></div>
       <div class="kpi-card" style="--kpi-color:#EFA75E"><div class="kpi-top"><span class="kpi-name">Da montare</span></div><div class="kpi-value" id="kpiEpDaMontare">—</div></div>
       <div class="kpi-card" style="--kpi-color:#B48EDE"><div class="kpi-top"><span class="kpi-name">Da pubblicare</span></div><div class="kpi-value" id="kpiEpDaPubblicare">—</div></div>
+    </div>
+
+    <div class="section-label"><span class="tag">02</span><h2>Operatività</h2><div class="line"></div></div>
+    <div class="kpi-grid">
+      <div class="kpi-card linkable" style="--kpi-color:#F0A0C4" onclick="goToPage('ospiti')"><div class="kpi-top"><span class="kpi-name">Ospiti da chiamare</span></div><div class="kpi-value" id="kpiDaChiamare">—</div></div>
+      <div class="kpi-card linkable" style="--kpi-color:#EFA75E" onclick="goToPage('task')"><div class="kpi-top"><span class="kpi-name">Task in sospeso</span></div><div class="kpi-value" id="kpiTaskSospesi">—</div></div>
     </div>
 
     <div class="section-label"><span class="tag">03</span><h2>Canale</h2><div class="line"></div></div>
@@ -278,7 +334,7 @@
   <section class="page" id="page-episodi">
     <div class="section-label"><span class="tag">EP</span><h2>Episodi</h2><div class="spacer"></div><button class="btn btn-small" onclick="toggleForm('formEpisodio')">+ Nuovo episodio</button></div>
     <div id="alertEpisodi" class="alert-box error hidden"></div>
-    <p class="subtitle"></p>
+    <p class="subtitle">Stato calcolato automaticamente dal calendario (non modificabile qui). Le note sono libere e si salvano subito.</p>
 
     <div class="form-panel" id="formEpisodio" style="display:none">
       <div class="form-grid">
@@ -287,11 +343,11 @@
         <div class="form-field"><label>Co-host</label><input id="epCohost" placeholder="Co-host"></div>
       </div>
       <div class="form-grid">
-        <div class="form-field"><label>Data registrazione (opz., crea anche l'evento in calendario)</label><input type="date" id="epDataReg"></div>
+        <div class="form-field"><label>Data registrazione (opz., gg/mm/aaaa — crea anche l'evento in calendario)</label><input type="text" id="epDataReg" placeholder="gg/mm/aaaa" maxlength="10"></div>
         <div class="form-field"><label>Ora registrazione (opz.)</label><input type="time" id="epOraReg"></div>
-        <div class="form-field"><label>Data pubblicazione (opz.)</label><input type="date" id="epDataPubb"></div>
+        <div class="form-field"><label>Data pubblicazione (opz., gg/mm/aaaa)</label><input type="text" id="epDataPubb" placeholder="gg/mm/aaaa" maxlength="10"></div>
       </div>
-      <p class="subtitle" style="margin:6px 0 0"></p>
+      <p class="subtitle" style="margin:6px 0 0">Gli ospiti si assegnano dalla pagina Ospiti, dopo aver creato l'episodio.</p>
       <button class="btn" onclick="addEpisode()">Salva episodio</button>
     </div>
 
@@ -318,7 +374,7 @@
   <section class="page" id="page-task">
     <div class="section-label"><span class="tag">TASK</span><h2>Task per episodio</h2><div class="line"></div></div>
     <div id="alertTask" class="alert-box error hidden"></div>
-    <p class="subtitle"></p>
+    <p class="subtitle">Da tab "Checklist_puntate", collegata a ogni episodio tramite Cod_puntata. Per un episodio con Data pubblicazione impostata, puoi generare automaticamente il flusso standard di post-produzione.</p>
     <div class="filter-bar" style="border-radius:10px;margin-bottom:16px;">
       <input type="text" id="taskSearch" placeholder="🔍 Cerca attività..." oninput="renderTaskGroups()">
     </div>
@@ -328,7 +384,7 @@
   <section class="page" id="page-kpi-canale">
     <div class="section-label"><span class="tag">YT</span><h2>KPI del canale YouTube</h2><div class="line"></div></div>
     <div id="alertYoutube" class="alert-box warn hidden"></div>
-    <p class="subtitle"><a href="https://studio.youtube.com/channel/UC3-ga_1XklXG8sozJeTX30Q/analytics/tab-overview/period-default" target="_blank" style="color:var(--purple)">@UltimoShampooPodcast Analytics</a></p>
+    <p class="subtitle">Dati live dal canale <a href="https://www.youtube.com/@UltimoShampooPodcast" target="_blank" style="color:var(--purple)">@UltimoShampooPodcast</a>. Gli Shorts sono classificati per durata (≤3 min) su tutti i video del canale, non solo quelli in Palinsesto.</p>
 
     <div class="section-label"><span class="tag">01</span><h2>Generali</h2><div class="line"></div></div>
     <div class="kpi-grid">
@@ -375,22 +431,8 @@
       <table><thead><tr><th>#</th><th>Titolo</th><th>Views</th><th>Like</th><th>Commenti</th></tr></thead>
       <tbody id="shortsVideosBody"><tr><td colspan="5" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
-
-    <div class="section-label"><span class="tag">📈</span><h2>Andamento nel tempo</h2><div class="spacer"></div>
-      <select id="chartScopeSelect" onchange="onChartScopeChange()" style="background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-family:'Inter',sans-serif;font-size:12.5px;margin-right:8px;">
-        <option value="agg">Confronto Podcast vs Shorts</option>
-      </select>
-      <select id="chartMetricSelect" onchange="renderAnalyticsChart()" style="background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-family:'Inter',sans-serif;font-size:12.5px;">
-        <option value="avgDuration">Durata media visione (min)</option>
-        <option value="avgPercentage">% media visione</option>
-        <option value="views">Views</option>
-        <option value="subscribersGained">Iscritti acquisiti</option>
-        <option value="comments">Commenti</option>
-      </select>
-    </div>
-    <div id="alertAnalyticsChart" class="alert-box warn hidden"></div>
-    <div class="chart-card"><canvas id="chartAnalytics"></canvas></div>
   </section>
+
 
   <section class="page" id="page-attrezzatura">
     <div class="section-label"><span class="tag">GEAR</span><h2>Inventario attrezzatura</h2><div class="spacer"></div><button class="btn btn-small" onclick="toggleForm('formAttrezzatura')">+ Nuova attrezzatura</button></div>
@@ -482,7 +524,7 @@
       <button class="modal-close" onclick="closeEventModal()">✕</button>
       <h3 id="eventModalTitle">Nuovo evento</h3>
       <div class="form-grid">
-        <div class="form-field"><label>Data (obbligatoria)</label><input type="date" id="evData" required></div>
+        <div class="form-field"><label>Data (obbligatoria, gg/mm/aaaa)</label><input type="text" id="evData" placeholder="gg/mm/aaaa" maxlength="10" required></div>
         <div class="form-field"><label>Ora inizio (opz.)</label><input type="time" id="evOraInizio"></div>
         <div class="form-field"><label>Ora fine (opz.)</label><input type="time" id="evOraFine"></div>
         <div class="form-field"><label>Tipo</label>
@@ -567,7 +609,7 @@
 const CONFIG = {
   SHEET_ID: "1-PDe062FZUGOtaBBBcYRWkvFNT7Ya3YC55ZjggUcw5s",
   APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwE8WeTYnyn8E05tx6Lil3RMZHmvZaoyR-68Rj3Und88iBo9VfWPZv-_5TfBvq6_OFH/exec",
-  GOOGLE_API_KEY: "AIzaSyDoh9uOPdpdrvOi1jlLYQ51FcSUnCocUTw",
+  GOOGLE_API_KEY: "AIzaSyDYNWSPjjOUPi7Qq_Jyunx38naBNU3sSJw",
   YOUTUBE_HANDLE: "UltimoShampooPodcast",
   ON_AIR_KEYWORD: "registrazione",
   TABS: { palinsesto: "Palinsesto", ospiti: "Ospiti", inventario: "Inventario attrezzatura", checklist: "Checklist_puntate" }
@@ -579,6 +621,16 @@ const HAS_APPS_SCRIPT = cfgOk(CONFIG.APPS_SCRIPT_URL);
 const HAS_GOOGLE_KEY  = cfgOk(CONFIG.GOOGLE_API_KEY);
 
 document.getElementById("logoImg").src = "data:image/jpeg;base64," + LOGO_B64;
+document.getElementById("logoImgMobile").src = "data:image/jpeg;base64," + LOGO_B64;
+
+function toggleSidebar(){
+  document.getElementById("sidebarNav").classList.toggle("open");
+  document.getElementById("sidebarOverlay").classList.toggle("show");
+}
+function closeSidebar(){
+  document.getElementById("sidebarNav").classList.remove("open");
+  document.getElementById("sidebarOverlay").classList.remove("show");
+}
 
 function showAlert(id, type, html){ const el=document.getElementById(id); if(!el)return; el.className="alert-box "+type; el.innerHTML=html; }
 function hideAlert(id){ const el=document.getElementById(id); if(el) el.classList.add("hidden"); }
@@ -589,6 +641,7 @@ function goToPage(page){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.querySelector(`.nav-item[data-page="${page}"]`).classList.add("active");
   document.getElementById("page-"+page).classList.add("active");
+  closeSidebar();
 }
 document.querySelectorAll(".nav-item").forEach(item=>{
   item.addEventListener("click", ()=>goToPage(item.dataset.page));
@@ -615,6 +668,35 @@ function fmtTime(d){
   return String(dt.getHours()).padStart(2,"0")+":"+String(dt.getMinutes()).padStart(2,"0");
 }
 function fmtDateTime(d){ const t=fmtTime(d); return fmtDate(d)+(t?" "+t:""); }
+// Converte una data ISO (yyyy-mm-dd, quella salvata nel foglio) nel formato
+// visualizzato gg/mm/aaaa, e viceversa — usato per i campi data testuali.
+function isoToDisplayDate(iso){
+  if(!iso) return "";
+  const parts = String(iso).split("-");
+  if(parts.length!==3) return iso;
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+function displayToIsoDate(display){
+  if(!display || !display.trim()) return "";
+  const m = display.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(!m) return null; // formato non valido
+  const dd = m[1].padStart(2,"0"), mm = m[2].padStart(2,"0"), yyyy = m[3];
+  return `${yyyy}-${mm}-${dd}`;
+}
+// Wrapper da usare in onchange: valida il formato gg/mm/aaaa prima di chiamare la callback di salvataggio
+function onDateInputChange(inputEl, saveCallback){
+  const raw = inputEl.value.trim();
+  if(raw === ""){ saveCallback(""); return; }
+  const iso = displayToIsoDate(raw);
+  if(iso === null){
+    alert("Formato data non valido. Usa gg/mm/aaaa (es. 27/07/2026).");
+    return;
+  }
+  saveCallback(iso);
+}
+function dateInputHtml(iso, onChangeExpr, extraAttrs){
+  return `<input type="text" class="note-input date-input" placeholder="gg/mm/aaaa" maxlength="10" value="${isoToDisplayDate(iso)}" onchange="onDateInputChange(this, (iso)=>{${onChangeExpr}})" ${extraAttrs||""}>`;
+}
 function badgeClass(stato){
   const s=(stato||"").toLowerCase();
   if(s.includes("pubblicat")||s.includes("registrat")||s.includes("confermat")) return "b-blue";
@@ -809,8 +891,8 @@ function renderEpisodiTable(){
       <td><input class="note-input" value="${(r["Titolo"]||"").replace(/"/g,"&quot;")}" onchange="saveEpisodeField('${codEsc}','Titolo',this.value)"></td>
       <td>${ospitiDisplay}</td>
       <td><span class="badge ${badgeClass(info.stato)}">${info.stato}</span><div style="font-size:10px;color:var(--text-muted);margin-top:2px">${dataTxt}</div></td>
-      <td><input type="date" class="note-input" value="${r["Data registrazione"]||""}" onchange="saveEpisodeField('${codEsc}','Data registrazione',this.value)"></td>
-      <td><input type="date" class="note-input" value="${r["Data pubblicazione"]||""}" onchange="saveEpisodeField('${codEsc}','Data pubblicazione',this.value)"></td>
+      <td>${dateInputHtml(r["Data registrazione"], `saveEpisodeField('${codEsc}','Data registrazione',iso)`)}</td>
+      <td>${dateInputHtml(r["Data pubblicazione"], `saveEpisodeField('${codEsc}','Data pubblicazione',iso)`)}</td>
       <td>${s ? fmtNum(s.viewCount) : "—"}</td>
       <td><input class="note-input" value="${(r["Note"]||"").replace(/"/g,"&quot;")}" onchange="saveEpisodeField('${codEsc}','Note',this.value)" placeholder="Note..."></td>
       <td><button class="icon-btn danger" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="confirmDelete('${codEsc}', ()=>deleteEpisode('${codEsc}'))">🗑</button></td>
@@ -827,13 +909,21 @@ async function deleteEpisode(cod){
   await loadPalinsesto();
 }
 async function addEpisode(){
+  const dataRegRaw = document.getElementById("epDataReg").value.trim();
+  const dataPubbRaw = document.getElementById("epDataPubb").value.trim();
+  const dataRegIso = displayToIsoDate(dataRegRaw);
+  const dataPubbIso = displayToIsoDate(dataPubbRaw);
+  if(dataRegIso===null || dataPubbIso===null){
+    alert("Formato data non valido. Usa gg/mm/aaaa (es. 27/07/2026).");
+    return;
+  }
   const data = {
     titolo: document.getElementById("epTitolo").value.trim(),
     conduttore: document.getElementById("epConduttore").value.trim(),
     cohost: document.getElementById("epCohost").value.trim(),
-    dataRegistrazione: document.getElementById("epDataReg").value,
+    dataRegistrazione: dataRegIso,
     oraRegistrazione: document.getElementById("epOraReg").value,
-    dataPubblicazione: document.getElementById("epDataPubb").value
+    dataPubblicazione: dataPubbIso
   };
   try{
     await callAppsScript("addEpisode", data);
@@ -967,7 +1057,6 @@ async function loadChannelKpi(){
     document.getElementById("kpiAvgLike").textContent = fmtNum(avg(allVideosForAvg.map(v=>v.like)));
     document.getElementById("kpiAvgComments").textContent = fmtNum(avg(allVideosForAvg.map(v=>v.comm)));
 
-    populateChartScopeSelect();
     await loadAnalytics(podcastIds, shortsIds);
   }catch(e){
     console.error("Errore YouTube:", e);
@@ -977,45 +1066,19 @@ async function loadChannelKpi(){
 }
 
 /* ===================== YOUTUBE ANALYTICS (durata visione, %, iscritti, commenti) ===================== */
-let analyticsSeries = { podcast: [], shorts: [] };
 let videoListPodcast = [];
 let videoListShorts = [];
-let analyticsVideoCache = {}; // cache per-video: id -> rows giornalieri
-let podcastVideoIdsGlobal = [];
-let shortsVideoIdsGlobal = [];
 function fmtMinSec(seconds){
   if(!seconds) return "—";
   const m = Math.floor(seconds/60), s = Math.round(seconds%60);
   return `${m}:${String(s).padStart(2,"0")}`;
 }
-function populateChartScopeSelect(){
-  const sel = document.getElementById("chartScopeSelect");
-  const current = sel.value;
-  let html = `<option value="agg">Confronto Podcast vs Shorts</option>`;
-  if(videoListPodcast.length){
-    html += `<optgroup label="🎙️ Video podcast">` +
-      videoListPodcast.map(v=>`<option value="pod:${v.id}">${v.titolo}</option>`).join("") + `</optgroup>`;
-  }
-  if(videoListShorts.length){
-    html += `<optgroup label="📱 Shorts">` +
-      videoListShorts.map(v=>`<option value="short:${v.id}">${v.titolo}</option>`).join("") + `</optgroup>`;
-  }
-  sel.innerHTML = html;
-  sel.value = current && [...sel.options].some(o=>o.value===current) ? current : "agg";
-}
-async function onChartScopeChange(){
-  await renderAnalyticsChart();
-}
 async function loadAnalytics(podcastIds, shortsIds){
-  hideAlert("alertAnalyticsPod"); hideAlert("alertAnalyticsShort"); hideAlert("alertAnalyticsChart");
-  podcastVideoIdsGlobal = podcastIds;
-  shortsVideoIdsGlobal = shortsIds;
-  analyticsVideoCache = {};
+  hideAlert("alertAnalyticsPod"); hideAlert("alertAnalyticsShort");
   if(!HAS_APPS_SCRIPT){
     const msg = `⚠️ Statistiche di visione non disponibili — richiedono l'Apps Script con "YouTube Analytics API" abilitata (vedi guida setup).`;
     showAlert("alertAnalyticsPod","warn",msg);
     showAlert("alertAnalyticsShort","warn",msg);
-    showAlert("alertAnalyticsChart","warn",msg);
     return;
   }
   try{
@@ -1037,101 +1100,6 @@ async function loadAnalytics(podcastIds, shortsIds){
     showAlert("alertAnalyticsPod","warn",msg);
     showAlert("alertAnalyticsShort","warn",msg);
   }
-  try{
-    const [podSeries, shortSeries] = await Promise.all([
-      callAppsScript("getAnalyticsTimeSeries", {videoIds: podcastIds}),
-      callAppsScript("getAnalyticsTimeSeries", {videoIds: shortsIds}),
-    ]);
-    analyticsSeries.podcast = podSeries.rows || []; // righe giornaliere
-    analyticsSeries.shorts = shortSeries.rows || [];
-    await renderAnalyticsChart();
-  }catch(e){
-    console.error("Errore Analytics serie:", e);
-    showAlert("alertAnalyticsChart","warn",`⚠️ Andamento nel tempo non disponibile: ${e.message}`);
-  }
-}
-
-// Aggrega righe giornaliere [giorno, views, avgDuration(sec), avgPercentage(%), subsGained, comments] in mesi
-function aggregateDailyToMonthly(rows, metric){
-  const idxMap = { views:1, avgDuration:2, avgPercentage:3, subscribersGained:4, comments:5 };
-  const idx = idxMap[metric];
-  const isWeighted = metric==="avgDuration" || metric==="avgPercentage";
-  const buckets = {};
-  rows.forEach(r=>{
-    const month = String(r[0]).slice(0,7); // YYYY-MM
-    if(!buckets[month]) buckets[month] = {sum:0, weight:0};
-    const val = r[idx] || 0;
-    const views = r[1] || 0;
-    if(isWeighted){ buckets[month].sum += val*Math.max(views,1); buckets[month].weight += Math.max(views,1); }
-    else { buckets[month].sum += val; buckets[month].weight = 1; }
-  });
-  return Object.entries(buckets).map(([month,b])=>{
-    let value = isWeighted ? (b.weight? b.sum/b.weight : 0) : b.sum;
-    if(metric==="avgDuration") value = Math.round(value/60*10)/10; // secondi -> minuti, 1 decimale
-    if(metric==="avgPercentage") value = Math.round(value*10)/10;
-    return [month, value];
-  }).sort((a,b)=> a[0]<b[0] ? -1 : 1);
-}
-
-let analyticsChartInstance = null;
-async function renderAnalyticsChart(){
-  const metric = document.getElementById("chartMetricSelect").value;
-  const scope = document.getElementById("chartScopeSelect").value;
-
-  if(scope === "agg"){
-    const podMonthly = aggregateDailyToMonthly(analyticsSeries.podcast, metric);
-    const shortMonthly = aggregateDailyToMonthly(analyticsSeries.shorts, metric);
-    const months = [...new Set([...podMonthly, ...shortMonthly].map(r=>r[0]))].sort();
-    const podMap = Object.fromEntries(podMonthly);
-    const shortMap = Object.fromEntries(shortMonthly);
-    drawAnalyticsChart(months, [
-      { label:"Podcast", data: months.map(m=>podMap[m]??null), color:"#6FA3D8" },
-      { label:"Shorts", data: months.map(m=>shortMap[m]??null), color:"#F0A0C4" },
-    ]);
-    return;
-  }
-
-  // Scope = singolo video (formato "pod:ID" oppure "short:ID")
-  const [group, videoId] = scope.split(":");
-  const label = (group==="pod" ? videoListPodcast : videoListShorts).find(v=>v.id===videoId);
-  hideAlert("alertAnalyticsChart");
-  try{
-    if(!analyticsVideoCache[videoId]){
-      const resp = await callAppsScript("getAnalyticsTimeSeries", {videoIds:[videoId]});
-      analyticsVideoCache[videoId] = resp.rows || [];
-    }
-    const monthly = aggregateDailyToMonthly(analyticsVideoCache[videoId], metric);
-    const months = monthly.map(r=>r[0]);
-    const valMap = Object.fromEntries(monthly);
-    drawAnalyticsChart(months, [
-      { label: label ? label.titolo : videoId, data: months.map(m=>valMap[m]??null), color: group==="pod" ? "#6FA3D8" : "#F0A0C4" },
-    ]);
-  }catch(e){
-    showAlert("alertAnalyticsChart","warn",`⚠️ Andamento non disponibile per questo video: ${e.message}`);
-  }
-}
-function drawAnalyticsChart(months, datasets){
-  const ctx = document.getElementById("chartAnalytics").getContext("2d");
-  if(analyticsChartInstance) analyticsChartInstance.destroy();
-  analyticsChartInstance = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: months,
-      datasets: datasets.map(ds=>({
-        label: ds.label, data: ds.data, borderColor: ds.color,
-        backgroundColor: ds.color+"20", tension:.3, spanGaps:true
-      }))
-    },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:"top", labels:{color:"#23222B", font:{family:"Inter"}} } },
-      scales:{
-        x:{ ticks:{color:"#8B8894", font:{family:"IBM Plex Mono", size:10}}, grid:{color:"#EEEDF3"} },
-        y:{ ticks:{color:"#8B8894", font:{family:"IBM Plex Mono", size:10}}, grid:{color:"#EEEDF3"} },
-      }
-    }
-  });
-  document.getElementById("chartAnalytics").parentElement.style.height = "300px";
 }
 
 let attrezzaturaData = [];
@@ -1252,7 +1220,7 @@ function openEventModal(ev, prefillDateStr){
 
   if(ev){
     const d = new Date(ev.inizio);
-    document.getElementById("evData").value = d.toISOString().slice(0,10);
+    document.getElementById("evData").value = isoToDisplayDate(d.toISOString().slice(0,10));
     document.getElementById("evOraInizio").value = ev.tuttoIlGiorno ? "" : fmtTime(d);
     document.getElementById("evOraFine").value = ev.tuttoIlGiorno ? "" : fmtTime(new Date(ev.fine));
     document.getElementById("evTitoloManuale").value = ev.titolo || "";
@@ -1261,7 +1229,7 @@ function openEventModal(ev, prefillDateStr){
   } else {
     ["evData","evOraInizio","evOraFine","evTitoloManuale","evNote","evNuovoTitolo"].forEach(id=>document.getElementById(id).value="");
     document.getElementById("evTipo").value = "Altro";
-    if(prefillDateStr) document.getElementById("evData").value = prefillDateStr.slice(0,10);
+    if(prefillDateStr) document.getElementById("evData").value = isoToDisplayDate(prefillDateStr.slice(0,10));
   }
   document.getElementById("eventModalOverlay").classList.add("show");
 }
@@ -1270,8 +1238,10 @@ function closeEventModal(){
   editingEventId = null;
 }
 async function saveEventFromModal(){
-  const data = document.getElementById("evData").value;
-  if(!data){ alert("La data è obbligatoria"); return; }
+  const dataRaw = document.getElementById("evData").value.trim();
+  if(!dataRaw){ alert("La data è obbligatoria"); return; }
+  const data = displayToIsoDate(dataRaw);
+  if(data===null){ alert("Formato data non valido. Usa gg/mm/aaaa (es. 27/07/2026)."); return; }
   const oraInizio = document.getElementById("evOraInizio").value;
   const oraFine = document.getElementById("evOraFine").value;
   const note = document.getElementById("evNote").value.trim();
@@ -1365,24 +1335,30 @@ function isCancelled(ev){ return (ev.titolo||"").toUpperCase().startsWith("ANNUL
 /* ---------- FullCalendar ---------- */
 function initFullCalendar(){
   const el = document.getElementById("fullCalendarEl");
+  const isNarrow = window.innerWidth < 700;
   fullCalendarInstance = new FullCalendar.Calendar(el, {
     locale: "it",
     firstDay: 1,
-    initialView: "timeGridWeek",
-    headerToolbar: { left: "prev,next today", center: "title", right: "timeGridDay,timeGridWeek,dayGridMonth" },
+    initialView: isNarrow ? "listWeek" : "timeGridWeek",
+    headerToolbar: { left: "prev,next today", center: "title", right: isNarrow ? "listWeek,timeGridDay" : "timeGridDay,timeGridWeek,dayGridMonth" },
     eventResizableFromStart: true,
     nowIndicator: true,
     slotDuration: "00:15:00",
-    buttonText: { today: "Oggi", month: "Mese", week: "Settimana", day: "Giorno" },
+    buttonText: { today: "Oggi", month: "Mese", week: "Settimana", day: "Giorno", list: "Lista" },
     editable: true,
     eventTimeFormat: { hour: "2-digit", minute: "2-digit", hour12: false, meridiem: false },
     slotLabelFormat: { hour: "2-digit", minute: "2-digit", hour12: false, meridiem: false },
-    height: 640,
+    height: isNarrow ? 520 : 640,
+    contentHeight: isNarrow ? 480 : undefined,
     events: (info, successCb) => successCb(buildFullCalendarEvents()),
     eventDrop: (info) => onEventDragOrResize(info.event),
     eventResize: (info) => onEventDragOrResize(info.event),
     dateClick: (info) => openEventModal(null, info.dateStr),
     eventClick: (info) => { const ev = calendarEvents.find(e=>e.id===info.event.id); if(ev) openEventModal(ev); },
+    windowResize: () => {
+      const nowNarrow = window.innerWidth < 700;
+      fullCalendarInstance.changeView(nowNarrow ? "listWeek" : "timeGridWeek");
+    },
   });
   fullCalendarInstance.render();
 }
@@ -1472,7 +1448,7 @@ function renderCalendarioTable(){
     const idEsc = ev.id.replace(/'/g,"\\'");
     return `<tr>
       <td>
-        <input type="date" class="note-input" value="${dateVal}" onchange="updateEventField('${idEsc}','data',this.value)">
+        ${dateInputHtml(dateVal, `updateEventField('${idEsc}','data',iso)`)}
         ${!ev.tuttoIlGiorno?`<input type="time" class="note-input" value="${timeVal}" onchange="updateEventField('${idEsc}','oraInizio',this.value)">`:""}
       </td>
       <td><input class="note-input" value="${(ev.titolo||"").replace(/"/g,"&quot;")}" onchange="updateEventField('${idEsc}','titolo',this.value)"></td>
@@ -1669,16 +1645,22 @@ function renderTaskGroups(){
       </div>
       ${items.length ? items.map(t=>{
         const idEsc = t["ID"].replace(/'/g,"\\'");
+        const confirmed = !!t["Calendar_Event_Id"];
         return `<div class="task-row ${String(t["Fatto"]).toUpperCase()==='TRUE'?'done':''}">
           <input type="checkbox" ${String(t["Fatto"]).toUpperCase()==='TRUE'?'checked':''} onchange="toggleTask('${idEsc}', this.checked)">
           <input class="note-input" style="flex:2" value="${(t["Attività"]||"").replace(/"/g,"&quot;")}" onchange="updateChecklistField('${idEsc}','Attività',this.value)">
           <input class="note-input" style="width:110px" value="${(t["Categoria"]||"").replace(/"/g,"&quot;")}" onchange="updateChecklistField('${idEsc}','Categoria',this.value)">
-          <input type="date" class="note-input" style="width:130px" value="${t["Scadenza"]||""}" onchange="updateChecklistField('${idEsc}','Scadenza',this.value)">
+          ${dateInputHtml(t["Scadenza"], `updateChecklistField('${idEsc}','Scadenza',iso)`, `style="width:110px"`)}
+          <button class="icon-btn ${confirmed?"":"danger"}" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="confirmTaskToCalendar('${idEsc}')" title="${confirmed?"Aggiornato in calendario — clicca per risincronizzare":"Pubblica questa scadenza come evento in calendario"}">${confirmed?"✅ In calendario":"📅 Conferma"}</button>
           <button class="icon-btn danger" onclick="confirmDelete('${(t["Attività"]||"").replace(/'/g,"\\'")}', ()=>deleteTask('${idEsc}'))">🗑</button>
         </div>`;
       }).join("") : `<div class="empty-state">Nessun task ancora — genera il flusso standard o aggiungine uno dal foglio</div>`}
     </div>`;
   }).join("") || `<div class="empty-state">Nessun task corrisponde alla ricerca</div>`;
+}
+async function confirmTaskToCalendar(id){
+  try{ await callAppsScript("confirmTaskEvent", {id}); await loadTask(); await loadCalendario(); }
+  catch(e){ alert("Errore: "+e.message); }
 }
 async function toggleTask(id, fatto){
   try{ await callAppsScript("toggleChecklistItem", {id, fatto}); await loadTask(); }
