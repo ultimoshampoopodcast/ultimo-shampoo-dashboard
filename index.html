@@ -577,7 +577,7 @@
     <div class="dt-grid" id="dtGrid"></div>
     <div class="dt-time-row">
       <label>Ora</label>
-      <input type="text" id="dtTimeInput" placeholder="HH:mm" maxlength="5" inputmode="numeric">
+      <input type="text" id="dtTimeInput" placeholder="HH:mm" maxlength="5" inputmode="numeric" oninput="dtAutoFormatTime(this)">
       <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-muted)">24h</span>
     </div>
     <div class="dt-popup-actions">
@@ -595,7 +595,7 @@
         <div class="form-field"><label>Quando (obbligatorio)</label>
           <button type="button" class="dt-trigger empty" id="evDtTrigger" onclick="openDateTimePicker(this, evSelectedIso, evSelectedTime, (iso,time)=>{ evSelectedIso=iso; evSelectedTime=time; const b=document.getElementById('evDtTrigger'); b.innerHTML='<span class=\'dt-ic\'>📅</span>'+isoToDisplayDate(iso)+' · '+time; b.classList.remove('empty'); })">📅 Imposta data e ora</button>
         </div>
-        <div class="form-field"><label>Ora fine (opz., HH:mm 24h)</label><input type="text" id="evOraFine" placeholder="HH:mm" maxlength="5"></div>
+        <div class="form-field"><label>Ora fine (opz., HH:mm 24h)</label><input type="text" id="evOraFine" placeholder="HH:mm" maxlength="5" oninput="dtAutoFormatTime(this)"></div>
         <div class="form-field"><label>Tipo</label>
           <select id="evTipo" onchange="onEventTypeChange()">
             <option value="Altro">Altro</option>
@@ -676,7 +676,7 @@
 
 <script>
 const CONFIG = {
- SHEET_ID: "1-PDe062FZUGOtaBBBcYRWkvFNT7Ya3YC55ZjggUcw5s",
+  SHEET_ID: "1-PDe062FZUGOtaBBBcYRWkvFNT7Ya3YC55ZjggUcw5s",
   APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwE8WeTYnyn8E05tx6Lil3RMZHmvZaoyR-68Rj3Und88iBo9VfWPZv-_5TfBvq6_OFH/exec",
   GOOGLE_API_KEY: "AIzaSyDoh9uOPdpdrvOi1jlLYQ51FcSUnCocUTw",
   YOUTUBE_HANDLE: "UltimoShampooPodcast",
@@ -834,6 +834,12 @@ function closeDateTimePicker(){
   document.getElementById("dtPopup").classList.remove("show");
   document.getElementById("dtPopupOverlay").classList.remove("show");
   dtState.onConfirm = null;
+}
+// Inserisce automaticamente i ":" mentre si digitano le cifre dell'orario (es. "1430" -> "14:30"),
+// così non serve mai premere il tasto ":" sulla tastiera.
+function dtAutoFormatTime(el){
+  let digits = el.value.replace(/\D/g,"").slice(0,4);
+  el.value = digits.length >= 3 ? digits.slice(0,2)+":"+digits.slice(2) : digits;
 }
 function confirmDateTimePicker(){
   const timeRaw = document.getElementById("dtTimeInput").value.trim();
