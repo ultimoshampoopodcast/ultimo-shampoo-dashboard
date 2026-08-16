@@ -334,7 +334,7 @@
   <section class="page" id="page-episodi">
     <div class="section-label"><span class="tag">EP</span><h2>Episodi</h2><div class="spacer"></div><button class="btn btn-small" onclick="toggleForm('formEpisodio')">+ Nuovo episodio</button></div>
     <div id="alertEpisodi" class="alert-box error hidden"></div>
-    <p class="subtitle">Stato calcolato automaticamente dal calendario (non modificabile qui). Le note sono libere e si salvano subito.</p>
+    <p class="subtitle">Lo Stato è modificabile: cambiarlo si sincronizza col Calendario (es. "Annullata" annulla l'evento collegato). Se imposti una data di registrazione o pubblicazione, indica anche l'orario: serve a mostrarla correttamente in calendario.</p>
 
     <div class="form-panel" id="formEpisodio" style="display:none">
       <div class="form-grid">
@@ -343,9 +343,12 @@
         <div class="form-field"><label>Co-host</label><input id="epCohost" placeholder="Co-host"></div>
       </div>
       <div class="form-grid">
-        <div class="form-field"><label>Data registrazione (opz., gg/mm/aaaa — crea anche l'evento in calendario)</label><input type="text" id="epDataReg" placeholder="gg/mm/aaaa" maxlength="10"></div>
-        <div class="form-field"><label>Ora registrazione (opz.)</label><input type="time" id="epOraReg"></div>
+        <div class="form-field"><label>Data registrazione (opz., gg/mm/aaaa)</label><input type="text" id="epDataReg" placeholder="gg/mm/aaaa" maxlength="10"></div>
+        <div class="form-field"><label>Ora registrazione (obbligatoria se data compilata)</label><input type="time" id="epOraReg"></div>
+      </div>
+      <div class="form-grid">
         <div class="form-field"><label>Data pubblicazione (opz., gg/mm/aaaa)</label><input type="text" id="epDataPubb" placeholder="gg/mm/aaaa" maxlength="10"></div>
+        <div class="form-field"><label>Ora pubblicazione (obbligatoria se data compilata)</label><input type="time" id="epOraPubb"></div>
       </div>
       <p class="subtitle" style="margin:6px 0 0">Gli ospiti si assegnano dalla pagina Ospiti, dopo aver creato l'episodio.</p>
       <button class="btn" onclick="addEpisode()">Salva episodio</button>
@@ -362,7 +365,7 @@
         <th class="sortable" data-key="Cod_puntata" onclick="setSort('episodi','Cod_puntata')">Cod. <span class="sort-ind">↕</span></th>
         <th class="sortable" data-key="Titolo" onclick="setSort('episodi','Titolo')">Titolo <span class="sort-ind">↕</span></th>
         <th>Ospiti</th>
-        <th class="sortable" data-key="_stato" onclick="setSort('episodi','_stato')">Stato <span class="sort-ind">↕</span></th>
+        <th class="sortable" data-key="Stato" onclick="setSort('episodi','Stato')">Stato <span class="sort-ind">↕</span></th>
         <th class="sortable" data-key="Data registrazione" onclick="setSort('episodi','Data registrazione')">Registrazione <span class="sort-ind">↕</span></th>
         <th class="sortable" data-key="Data pubblicazione" onclick="setSort('episodi','Data pubblicazione')">Pubblicazione <span class="sort-ind">↕</span></th>
         <th>Views</th><th>Note</th><th></th>
@@ -829,6 +832,7 @@ function guestMultiSelectHtml(selectedCsv, onChangeExpr){
     `</select>`;
 }
 
+const EPISODE_STATI = ["Da registrare","In registrazione","Registrata","In montaggio","Pubblicata","Annullata"];
 async function loadPalinsesto(){
   hideAlert("alertEpisodi"); setWarnDot("warnEpisodi", false);
   try{
@@ -838,7 +842,7 @@ async function loadPalinsesto(){
     let videoIds = palinsestoData.map(r=>extractYoutubeId(r["Link"]||r["Link intervista"])).filter(Boolean);
     if(HAS_GOOGLE_KEY && videoIds.length) lastPodStats = await fetchVideoStats(videoIds);
 
-    populateSelectOptions("episodiFilterStato", palinsestoData.map(r=>computeEpisodeStato(r).stato), tableState.episodi.filters["_stato"]);
+    populateSelectOptions("episodiFilterStato", palinsestoData.map(r=>r["Stato"]||"Da registrare"), tableState.episodi.filters["Stato"]);
     renderEpisodiTable();
   }catch(e){
     console.error('Errore tab "'+CONFIG.TABS.palinsesto+'":', e);
@@ -853,11 +857,11 @@ function updateHomeEpisodeKpis(){
   const today = new Date(); today.setHours(0,0,0,0);
   let registrati=0, daRegistrare=0, daMontare=0, daPubblicare=0;
   palinsestoData.forEach(r=>{
-    const stato = computeEpisodeStato(r).stato;
+    const stato = r["Stato"] || "Da registrare";
     const haLink = !!(r["Link"]||r["Link intervista"]);
     if(stato==="Registrata") registrati++;
     if(stato==="Da registrare") daRegistrare++;
-    if(stato==="Registrata" && !haLink) daMontare++;
+    if((stato==="Registrata"||stato==="In montaggio") && !haLink) daMontare++;
     if(r["Data pubblicazione"]){
       const dp = new Date(r["Data pubblicazione"]); dp.setHours(0,0,0,0);
       if(!isNaN(dp) && dp >= today) daPubblicare++;
@@ -868,12 +872,17 @@ function updateHomeEpisodeKpis(){
   document.getElementById("kpiEpDaMontare").textContent = fmtNum(daMontare);
   document.getElementById("kpiEpDaPubblicare").textContent = fmtNum(daPubblicare);
 }
+function statoSelectHtml(cod, current){
+  const codEsc = (cod||"").replace(/'/g,"\\'");
+  return `<select class="note-input" ${HAS_APPS_SCRIPT?"":"disabled"} onchange="saveEpisodeField('${codEsc}','Stato',this.value)">` +
+    EPISODE_STATI.map(s=>`<option ${s===current?"selected":""}>${s}</option>`).join("") +
+    `</select>`;
+}
 function renderEpisodiTable(){
-  tableState.episodi.filters["_stato"] = document.getElementById("episodiFilterStato").value;
+  tableState.episodi.filters["Stato"] = document.getElementById("episodiFilterStato").value;
   tableState.episodi.search = document.getElementById("episodiSearch").value;
 
-  const enriched = palinsestoData.map(r=>({...r, _stato: computeEpisodeStato(r).stato}));
-  const rows = applyFilters(enriched, "episodi", ["Cod_puntata","Titolo","Ospiti esterni","_stato"]);
+  const rows = applyFilters(palinsestoData, "episodi", ["Cod_puntata","Titolo","Ospiti esterni","Stato"]);
   document.getElementById("episodiCount").textContent = `${rows.length} di ${palinsestoData.length}`;
 
   const tbody = document.getElementById("episodiBody");
@@ -881,18 +890,23 @@ function renderEpisodiTable(){
   tbody.innerHTML = rows.length ? rows.map(r=>{
     const id = extractYoutubeId(r["Link"]||r["Link intervista"]);
     const s = id ? stats[id] : null;
-    const info = computeEpisodeStato(r);
     const cod = r["Cod_puntata"];
     const codEsc = (cod||"").replace(/'/g,"\\'");
-    const dataTxt = info.data ? fmtDateTime(info.data) : "—";
     const ospitiDisplay = splitListClient(r["Ospiti esterni"]).join("; ") || "—";
+    const stato = r["Stato"] || "Da registrare";
     return `<tr>
       <td>${cod||"—"}</td>
       <td><input class="note-input" value="${(r["Titolo"]||"").replace(/"/g,"&quot;")}" onchange="saveEpisodeField('${codEsc}','Titolo',this.value)"></td>
       <td>${ospitiDisplay}</td>
-      <td><span class="badge ${badgeClass(info.stato)}">${info.stato}</span><div style="font-size:10px;color:var(--text-muted);margin-top:2px">${dataTxt}</div></td>
-      <td>${dateInputHtml(r["Data registrazione"], `saveEpisodeField('${codEsc}','Data registrazione',iso)`)}</td>
-      <td>${dateInputHtml(r["Data pubblicazione"], `saveEpisodeField('${codEsc}','Data pubblicazione',iso)`)}</td>
+      <td>${statoSelectHtml(cod, stato)}</td>
+      <td>
+        ${dateInputHtml(r["Data registrazione"], `saveEpisodeDateTime('${codEsc}','Data registrazione','Ora registrazione',iso)`)}
+        <input type="time" class="note-input" style="width:88px;margin-top:4px" value="${r["Ora registrazione"]||""}" onchange="saveEpisodeDateTime('${codEsc}','Ora registrazione','Data registrazione',this.value,true)">
+      </td>
+      <td>
+        ${dateInputHtml(r["Data pubblicazione"], `saveEpisodeDateTime('${codEsc}','Data pubblicazione','Ora pubblicazione',iso)`)}
+        <input type="time" class="note-input" style="width:88px;margin-top:4px" value="${r["Ora pubblicazione"]||""}" onchange="saveEpisodeDateTime('${codEsc}','Ora pubblicazione','Data pubblicazione',this.value,true)">
+      </td>
       <td>${s ? fmtNum(s.viewCount) : "—"}</td>
       <td><input class="note-input" value="${(r["Note"]||"").replace(/"/g,"&quot;")}" onchange="saveEpisodeField('${codEsc}','Note',this.value)" placeholder="Note..."></td>
       <td><button class="icon-btn danger" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="confirmDelete('${codEsc}', ()=>deleteEpisode('${codEsc}'))">🗑</button></td>
@@ -904,6 +918,21 @@ async function saveEpisodeField(cod, campo, valore){
   try{ await callAppsScript("updateEpisodeField", {codPuntata:cod, [campo]:valore}); await loadPalinsesto(); }
   catch(e){ alert("Errore salvataggio: "+e.message); await loadPalinsesto(); }
 }
+// Salva data+ora insieme (obbligatorio avere entrambe se una delle due è compilata),
+// leggendo il valore corrente dell'altro campo dalla riga già caricata.
+async function saveEpisodeDateTime(cod, campoModificato, campoAltro, valoreModificato, isTime){
+  const row = palinsestoData.find(r=>r["Cod_puntata"]===cod);
+  const altroValoreAttuale = row ? (row[campoAltro]||"") : "";
+  const payload = {codPuntata:cod};
+  payload[campoModificato] = valoreModificato;
+  if(valoreModificato && !altroValoreAttuale){
+    const chiedeOra = !isTime;
+    alert(`Imposta anche ${chiedeOra?"l'orario":"la data"} corrispondente: serve per posizionare correttamente l'evento in calendario.`);
+    // Salviamo comunque il campo compilato: l'evento calendario verrà creato quando anche l'altro sarà impostato
+  }
+  try{ await callAppsScript("updateEpisodeField", payload); await loadPalinsesto(); }
+  catch(e){ alert("Errore salvataggio: "+e.message); await loadPalinsesto(); }
+}
 async function deleteEpisode(cod){
   await callAppsScript("deleteRow", {tab:"Palinsesto", matchColumn:"Cod_puntata", matchValue:cod});
   await loadPalinsesto();
@@ -911,23 +940,28 @@ async function deleteEpisode(cod){
 async function addEpisode(){
   const dataRegRaw = document.getElementById("epDataReg").value.trim();
   const dataPubbRaw = document.getElementById("epDataPubb").value.trim();
+  const oraReg = document.getElementById("epOraReg").value;
+  const oraPubb = document.getElementById("epOraPubb").value;
   const dataRegIso = displayToIsoDate(dataRegRaw);
   const dataPubbIso = displayToIsoDate(dataPubbRaw);
   if(dataRegIso===null || dataPubbIso===null){
     alert("Formato data non valido. Usa gg/mm/aaaa (es. 27/07/2026).");
     return;
   }
+  if(dataRegIso && !oraReg){ alert("Imposta anche l'orario di registrazione."); return; }
+  if(dataPubbIso && !oraPubb){ alert("Imposta anche l'orario di pubblicazione."); return; }
   const data = {
     titolo: document.getElementById("epTitolo").value.trim(),
     conduttore: document.getElementById("epConduttore").value.trim(),
     cohost: document.getElementById("epCohost").value.trim(),
     dataRegistrazione: dataRegIso,
-    oraRegistrazione: document.getElementById("epOraReg").value,
-    dataPubblicazione: dataPubbIso
+    oraRegistrazione: oraReg,
+    dataPubblicazione: dataPubbIso,
+    oraPubblicazione: oraPubb
   };
   try{
     await callAppsScript("addEpisode", data);
-    ["epTitolo","epConduttore","epCohost","epDataReg","epOraReg","epDataPubb"].forEach(id=>document.getElementById(id).value="");
+    ["epTitolo","epConduttore","epCohost","epDataReg","epOraReg","epDataPubb","epOraPubb"].forEach(id=>document.getElementById(id).value="");
     document.getElementById("formEpisodio").style.display="none";
     await loadPalinsesto();
     await loadCalendario();
@@ -1210,7 +1244,7 @@ function onEpisodeSelectChange(){
 }
 
 /* ---------- Modal creazione / modifica evento ---------- */
-function openEventModal(ev, prefillDateStr){
+function openEventModal(ev, prefillDateStr, prefillAllDay){
   editingEventId = ev ? ev.id : null;
   document.getElementById("eventModalTitle").textContent = ev ? "Modifica evento" : "Nuovo evento";
   document.getElementById("evTipo").parentElement.parentElement.style.display = ev ? "none" : "grid";
@@ -1229,7 +1263,17 @@ function openEventModal(ev, prefillDateStr){
   } else {
     ["evData","evOraInizio","evOraFine","evTitoloManuale","evNote","evNuovoTitolo"].forEach(id=>document.getElementById(id).value="");
     document.getElementById("evTipo").value = "Altro";
-    if(prefillDateStr) document.getElementById("evData").value = isoToDisplayDate(prefillDateStr.slice(0,10));
+    if(prefillDateStr){
+      document.getElementById("evData").value = isoToDisplayDate(prefillDateStr.slice(0,10));
+      // Se il click è su uno slot orario (non su un giorno intero in vista mese), suggerisci l'orario esatto
+      if(!prefillAllDay){
+        const clicked = new Date(prefillDateStr);
+        if(!isNaN(clicked)){
+          document.getElementById("evOraInizio").value = fmtTime(clicked);
+          document.getElementById("evOraFine").value = fmtTime(new Date(clicked.getTime()+60*60000));
+        }
+      }
+    }
   }
   document.getElementById("eventModalOverlay").classList.add("show");
 }
@@ -1353,7 +1397,7 @@ function initFullCalendar(){
     events: (info, successCb) => successCb(buildFullCalendarEvents()),
     eventDrop: (info) => onEventDragOrResize(info.event),
     eventResize: (info) => onEventDragOrResize(info.event),
-    dateClick: (info) => openEventModal(null, info.dateStr),
+    dateClick: (info) => openEventModal(null, info.dateStr, info.allDay),
     eventClick: (info) => { const ev = calendarEvents.find(e=>e.id===info.event.id); if(ev) openEventModal(ev); },
     windowResize: () => {
       const nowNarrow = window.innerWidth < 700;
@@ -1651,14 +1695,17 @@ function renderTaskGroups(){
           <input class="note-input" style="flex:2" value="${(t["Attività"]||"").replace(/"/g,"&quot;")}" onchange="updateChecklistField('${idEsc}','Attività',this.value)">
           <input class="note-input" style="width:110px" value="${(t["Categoria"]||"").replace(/"/g,"&quot;")}" onchange="updateChecklistField('${idEsc}','Categoria',this.value)">
           ${dateInputHtml(t["Scadenza"], `updateChecklistField('${idEsc}','Scadenza',iso)`, `style="width:110px"`)}
-          <button class="icon-btn ${confirmed?"":"danger"}" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="confirmTaskToCalendar('${idEsc}')" title="${confirmed?"Aggiornato in calendario — clicca per risincronizzare":"Pubblica questa scadenza come evento in calendario"}">${confirmed?"✅ In calendario":"📅 Conferma"}</button>
+          <input type="time" class="note-input" style="width:80px" value="${t["Ora"]||""}" onchange="updateChecklistField('${idEsc}','Ora',this.value)">
+          <button class="icon-btn ${confirmed?"":"danger"}" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="confirmTaskToCalendar('${idEsc}','${(t["Scadenza"]||"")}','${(t["Ora"]||"")}')" title="${confirmed?"Aggiornato in calendario — clicca per risincronizzare":"Pubblica questa scadenza come evento in calendario"}">${confirmed?"✅ In calendario":"📅 Conferma"}</button>
           <button class="icon-btn danger" onclick="confirmDelete('${(t["Attività"]||"").replace(/'/g,"\\'")}', ()=>deleteTask('${idEsc}'))">🗑</button>
         </div>`;
       }).join("") : `<div class="empty-state">Nessun task ancora — genera il flusso standard o aggiungine uno dal foglio</div>`}
     </div>`;
   }).join("") || `<div class="empty-state">Nessun task corrisponde alla ricerca</div>`;
 }
-async function confirmTaskToCalendar(id){
+async function confirmTaskToCalendar(id, scadenza, ora){
+  if(!scadenza){ alert("Imposta prima una data di Scadenza per questo task."); return; }
+  if(!ora){ alert("Imposta anche un orario per questo task prima di confermarlo."); return; }
   try{ await callAppsScript("confirmTaskEvent", {id}); await loadTask(); await loadCalendario(); }
   catch(e){ alert("Errore: "+e.message); }
 }
@@ -1683,14 +1730,14 @@ async function generateStandardTasks(cod){
   if(!ep || !ep["Data pubblicazione"]){ alert("Imposta prima una Data pubblicazione per questo episodio (dalla pagina Episodi)."); return; }
   const pub = ep["Data pubblicazione"];
   const items = [
-    {attivita:"Montaggio episodio", categoria:"Montaggio", scadenza: addDays(pub, -10)},
-    {attivita:"Post Instagram — annuncio puntata", categoria:"Social", scadenza: addDays(pub, -7)},
-    {attivita:"Post TikTok — annuncio puntata", categoria:"Social", scadenza: addDays(pub, -7)},
-    {attivita:"Short preview — Instagram", categoria:"Social", scadenza: addDays(pub, -1)},
-    {attivita:"Short preview — TikTok", categoria:"Social", scadenza: addDays(pub, -1)},
-    {attivita:"Short preview — YouTube", categoria:"Social", scadenza: addDays(pub, -1)},
-    {attivita:"Post pubblicazione — Instagram", categoria:"Social", scadenza: pub},
-    {attivita:"Post pubblicazione — TikTok", categoria:"Social", scadenza: pub},
+    {attivita:"Montaggio episodio", categoria:"Montaggio", scadenza: addDays(pub, -10), ora:"10:00"},
+    {attivita:"Post Instagram — annuncio puntata", categoria:"Social", scadenza: addDays(pub, -7), ora:"12:00"},
+    {attivita:"Post TikTok — annuncio puntata", categoria:"Social", scadenza: addDays(pub, -7), ora:"12:00"},
+    {attivita:"Short preview — Instagram", categoria:"Social", scadenza: addDays(pub, -1), ora:"18:00"},
+    {attivita:"Short preview — TikTok", categoria:"Social", scadenza: addDays(pub, -1), ora:"18:00"},
+    {attivita:"Short preview — YouTube", categoria:"Social", scadenza: addDays(pub, -1), ora:"18:00"},
+    {attivita:"Post pubblicazione — Instagram", categoria:"Social", scadenza: pub, ora:"09:00"},
+    {attivita:"Post pubblicazione — TikTok", categoria:"Social", scadenza: pub, ora:"09:00"},
   ];
   try{
     await callAppsScript("addChecklistItems", {codPuntata:cod, items});
