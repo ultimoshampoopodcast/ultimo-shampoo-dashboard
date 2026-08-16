@@ -725,6 +725,7 @@ async function fetchTab(tabName){
   return Papa.parse(text, {header:true, skipEmptyLines:true}).data;
 }
 function extractYoutubeId(url){ if(!url) return null; const m=url.match(/(?:v=|youtu\.be\/|shorts\/)([a-zA-Z0-9_-]{11})/); return m?m[1]:null; }
+function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
 function fmtNum(n){ if(n===null||n===undefined||isNaN(n)) return "—"; return Number(n).toLocaleString("it-IT"); }
 function fmtDate(d){
   const dt = d instanceof Date ? d : new Date(d);
@@ -1060,7 +1061,7 @@ async function saveEpisodeField(cod, campo, valore){
 }
 // Salva data+ora in un'unica chiamata atomica (il picker garantisce che siano sempre compilate insieme)
 async function saveEpisodeDateTimeCombined(cod, dateCol, timeCol, iso, time){
-  try{ await callAppsScript("updateEpisodeField", {codPuntata:cod, [dateCol]:iso, [timeCol]:time}); await loadPalinsesto(); }
+  try{ await callAppsScript("updateEpisodeField", {codPuntata:cod, [dateCol]:iso, [timeCol]:time}); await sleep(700); await loadPalinsesto(); }
   catch(e){ alert("Errore salvataggio: "+e.message); await loadPalinsesto(); }
 }
 async function deleteEpisode(cod){
@@ -1496,6 +1497,7 @@ async function deleteEvent(eventId){
 async function updateEventDateTimeCombined(eventId, iso, time){
   try{
     await callAppsScript("updateCalendarEvent", {eventId, data: iso, oraInizio: time});
+    await sleep(700);
     await loadCalendario();
     await loadPalinsesto();
   }catch(e){ alert("Errore salvataggio: "+e.message); }
@@ -1851,6 +1853,7 @@ async function updateTaskDateTimeCombined(id, iso, time){
     if(task && task["Calendar_Event_Id"]){
       await callAppsScript("confirmTaskEvent", {id});
     }
+    await sleep(700);
     await loadTask();
   }catch(e){ alert("Errore salvataggio: "+e.message); }
 }
@@ -1906,11 +1909,32 @@ function renderGlobalAlerts(){
     : "";
 }
 
+const REQUIRED_COLUMNS = {
+  "Palinsesto": ["Cod_puntata","Titolo","Ospiti esterni","Conduttore","Co-host","Data registrazione","Ora registrazione","Data pubblicazione","Ora pubblicazione","Link","Link intervista","Stato","Calendar_Event_Id","Calendar_Publish_Event_Id","Note"],
+  "Ospiti": ["Nome","Contatti","Temi","Stato","Cod_puntata","Note"],
+  "Inventario attrezzatura": ["Nome","Categoria","Proprietario","Costo","Stato","Da sostituire"],
+  "Checklist_puntate": ["ID","Cod_puntata","Attività","Categoria","Scadenza","Ora","Fatto","Calendar_Event_Id","Note"]
+};
 async function testConnection(){
   let report = "DIAGNOSTICA COLLEGAMENTI\n\n— Google Sheet —\n";
   for(const t of [CONFIG.TABS.palinsesto, CONFIG.TABS.ospiti, CONFIG.TABS.inventario, CONFIG.TABS.checklist]){
-    try{ const res=await fetch(csvUrl(t)); const text=await res.text();
-      report += res.ok && !text.trim().startsWith("<") ? `✅ "${t}" OK\n` : `❌ "${t}" risposta non valida\n`;
+    try{
+      const res=await fetch(csvUrl(t)); const text=await res.text();
+      if(res.ok && !text.trim().startsWith("<")){
+        report += `✅ "${t}" raggiungibile\n`;
+        const firstLine = text.split("\n")[0];
+        const headers = (Papa.parse(firstLine).data[0]||[]).map(h=>String(h).trim());
+        const required = REQUIRED_COLUMNS[t] || [];
+        const missing = required.filter(c=>!headers.includes(c));
+        if(missing.length){
+          report += `   ⚠️ COLONNE NON TROVATE (nome diverso o mancante): ${missing.join(", ")}\n`;
+          report += `   Colonne presenti nel foglio: ${headers.join(" | ")}\n`;
+        } else {
+          report += `   ✅ Tutte le colonne richieste sono presenti\n`;
+        }
+      } else {
+        report += `❌ "${t}" risposta non valida (condivisione foglio?)\n`;
+      }
     }catch(e){ report += `❌ "${t}" errore: ${e.message}\n`; }
   }
   report += "\n— YouTube API —\n" + (HAS_GOOGLE_KEY ? "✅ Chiave impostata\n" : "❌ GOOGLE_API_KEY non impostata\n");
