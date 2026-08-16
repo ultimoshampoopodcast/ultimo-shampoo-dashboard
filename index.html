@@ -413,9 +413,9 @@
         <th class="sortable" data-key="Stato" onclick="setSort('episodi','Stato')">Stato <span class="sort-ind">↕</span></th>
         <th class="sortable" data-key="Data registrazione" onclick="setSort('episodi','Data registrazione')">Registrazione <span class="sort-ind">↕</span></th>
         <th class="sortable" data-key="Data pubblicazione" onclick="setSort('episodi','Data pubblicazione')">Pubblicazione <span class="sort-ind">↕</span></th>
-        <th>Views</th><th>Note</th><th></th>
+        <th>Note</th><th></th>
       </tr></thead>
-      <tbody id="episodiBody"><tr><td colspan="9" class="empty-state">Caricamento...</td></tr></tbody></table>
+      <tbody id="episodiBody"><tr><td colspan="8" class="empty-state">Caricamento...</td></tr></tbody></table>
     </div></div>
   </section>
 
@@ -995,7 +995,7 @@ async function loadPalinsesto(){
     console.error('Errore tab "'+CONFIG.TABS.palinsesto+'":', e);
     showAlert("alertEpisodi","error",`⚠️ Impossibile leggere la tab "${CONFIG.TABS.palinsesto}": ${e.message}`);
     setWarnDot("warnEpisodi", true);
-    document.getElementById("episodiBody").innerHTML = `<tr><td colspan="9" class="empty-state">Dati non disponibili</td></tr>`;
+    document.getElementById("episodiBody").innerHTML = `<tr><td colspan="8" class="empty-state">Dati non disponibili</td></tr>`;
     ["kpiEpRegistrati","kpiEpDaRegistrare","kpiEpDaMontare","kpiEpDaPubblicare"].forEach(id=>document.getElementById(id).textContent="—");
     throw e;
   }
@@ -1033,10 +1033,7 @@ function renderEpisodiTable(){
   document.getElementById("episodiCount").textContent = `${rows.length} di ${palinsestoData.length}`;
 
   const tbody = document.getElementById("episodiBody");
-  const stats = lastPodStats;
   tbody.innerHTML = rows.length ? rows.map(r=>{
-    const id = extractYoutubeId(r["Link"]||r["Link intervista"]);
-    const s = id ? stats[id] : null;
     const cod = r["Cod_puntata"];
     const codEsc = (cod||"").replace(/'/g,"\\'");
     const ospitiDisplay = splitListClient(r["Ospiti esterni"]).join("; ") || "—";
@@ -1048,11 +1045,10 @@ function renderEpisodiTable(){
       <td>${statoSelectHtml(cod, stato)}</td>
       <td>${dtTriggerHtml(r["Data registrazione"], r["Ora registrazione"], `saveEpisodeDateTimeCombined('${codEsc}','Data registrazione','Ora registrazione',iso,time)`)}</td>
       <td>${dtTriggerHtml(r["Data pubblicazione"], r["Ora pubblicazione"], `saveEpisodeDateTimeCombined('${codEsc}','Data pubblicazione','Ora pubblicazione',iso,time)`)}</td>
-      <td>${s ? fmtNum(s.viewCount) : "—"}</td>
       <td><input class="note-input" value="${(r["Note"]||"").replace(/"/g,"&quot;")}" onchange="saveEpisodeField('${codEsc}','Note',this.value)" placeholder="Note..."></td>
       <td><button class="icon-btn danger" ${HAS_APPS_SCRIPT?"":"disabled"} onclick="confirmDelete('${codEsc}', ()=>deleteEpisode('${codEsc}'))">🗑</button></td>
     </tr>`;
-  }).join("") : `<tr><td colspan="9" class="empty-state">Nessun episodio trovato</td></tr>`;
+  }).join("") : `<tr><td colspan="8" class="empty-state">Nessun episodio trovato</td></tr>`;
 }
 function splitListClient(str){ return String(str||"").split(",").map(s=>s.trim()).filter(Boolean); }
 async function saveEpisodeField(cod, campo, valore){
