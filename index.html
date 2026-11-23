@@ -847,7 +847,7 @@ const CONFIG = {
   APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwfmU9t0fiqrO5zdeTbh5qld8awMWd85o5WFNcv22cgiN4xGRnQBphYdxGLBR4QWPhX/exec",
   GOOGLE_API_KEY: "AIzaSyDoh9uOPdpdrvOi1jlLYQ51FcSUnCocUTw",
   // ID client OAuth (Applicazione web) per il login Google. Lascia INCOLLA... per tenere il login disattivato.
-  GOOGLE_CLIENT_ID: "INCOLLA_CLIENT_ID_GOOGLE",
+  GOOGLE_CLIENT_ID: "1012258947333-mfkpc2fr47tc1k252rropsrltb2ip3o4.apps.googleusercontent.com",
   YOUTUBE_HANDLE: "UltimoShampooPodcast",
   ON_AIR_KEYWORD: "registrazione",
   TABS: { palinsesto: "Palinsesto", ospiti: "Ospiti", inventario: "Inventario attrezzatura", task: "Task", sottotask: "Sottotask", flusso: "Flusso", flussoSub: "Flusso_sottotask", persone: "Persone" }
@@ -2013,7 +2013,7 @@ function toast(msg){
 const nonEmpty = v => v!=null && String(v).trim()!=="";
 
 /* ===================== LOGIN GOOGLE ===================== */
-const AUTH_ON = cfgOk(1012258947333-mfkpc2fr47tc1k252rropsrltb2ip3o4.apps.googleusercontent.com);
+const AUTH_ON = cfgOk(CONFIG.GOOGLE_CLIENT_ID);
 const SESSION_KEY = "us_dashboard_session_v1";
 let session = null;
 function readStoredSession(){
