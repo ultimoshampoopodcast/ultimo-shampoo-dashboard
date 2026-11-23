@@ -2123,10 +2123,11 @@ function updateTaskKpi(){
   document.getElementById("kpiTaskSospesi").textContent = fmtNum(activeTasks().filter(t=>!taskIsDone(t)).length);
 }
 async function runSetupSchema(){
-  if(!confirm("Preparo il foglio: creo (solo se mancano) le tab Task, Sottotask, Flusso, Flusso_sottotask e Persone, aggiungo la colonna Archiviato a Palinsesto e Ospiti, importo il flusso standard e copio i vecchi task. I dati esistenti non vengono modificati. Procedo?")) return;
+  if(!confirm("Metto in ordine il foglio: sistemo le tab dei task, tolgo righe e colonne inutili, unisco 'Ruoli' in 'Persone' e 'Checklist_puntate' in 'Task', carico il flusso standard e creo i task delle puntate con data di pubblicazione. I contenuti non vengono persi (puoi sempre tornare indietro da File → Cronologia versioni). Procedo?")) return;
   try{
-    const r = await callAppsScript("setupSchema", {}, {timeoutMs:120000});
-    alert("Foglio pronto.\nTab create: "+(r.created.join(", ")||"nessuna")+"\nColonne aggiunte: "+(r.addedColumns.join(", ")||"nessuna")+"\nFlusso standard importato: "+(r.seeded?"sì":"no")+"\nVecchi task copiati: "+r.migrated);
+    const r = await callAppsScript("setupSchema", {}, {timeoutMs:180000});
+    const f = r.flow ? "\nTask creati: "+r.flow.tasksCreated+" su "+r.flow.episodes+" puntate"+((r.flow.skipped||[]).length?" (senza data di pubblicazione: "+r.flow.skipped.join(", ")+")":"") : "";
+    alert("Foglio pronto.\nTab tolte: "+(r.removedSheets.join(", ")||"nessuna")+"\nColonne tolte: "+(r.droppedColumns.join(", ")||"nessuna")+"\nRighe residue tolte: "+r.removedRows+"\nFlusso standard caricato: "+(r.seeded?"sì":"no")+f);
     await refreshAll();
   }catch(e){ alert("Errore: "+e.message); }
 }
